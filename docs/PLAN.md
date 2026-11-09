@@ -3,6 +3,8 @@
 > מקור: האפליקציה הקיימת ב-Base44 – `https://hour-office-0e2d785c.base44.app/`
 > ("Book office spaces by the hour for your flexible work needs").
 > התוכנית מבוססת על ניתוח הקוד של האפליקציה הקיימת: המסכים, הישויות, השדות, הטקסטים והלוגיקה.
+> **עודכן לפי הגרסה שפורסמה ב-09/11/2026** (נוספו: תקנון עם חתימה דיגיטלית, מיתוג, צפייה בהזמנות של משתמש, תאריך ביטול).
+> לפי התקנון, העסק משכיר **חדרי טיפול** לאנשי מקצוע בתחום הטיפול והבריאות.
 >
 > **Stack יעד:** Frontend ב-HTML + JavaScript (Vanilla, בלי framework) · Backend ב-C# (ASP.NET Core 8 Minimal API / Controllers) · MongoDB (Atlas) · Mobile-first, דו-לשוני (עברית RTL / אנגלית LTR).
 
@@ -17,15 +19,16 @@
 | 1 | `/login` | כולם | לוגו, "Welcome to HourOffice", **Continue with Google**, אימייל+סיסמה, **Forgot password?**, **Sign up** |
 | 2 | `/Welcome` | מחובר | קרוסלת Hero עם 4 שקפים (תמונה+כותרת+תת-כותרת, מעבר אוטומטי + נקודות), 3 אריחים (לפי שעה / מיקום מרכזי / כל גודל), כפתור "חקרו משרדים", בורר שפה. **בלי** סרגל ניווט תחתון |
 | 3 | `/Register` (השלמת פרופיל) | מחובר בלי טלפון | שם פרטי, שם משפחה (ממולאים מ-full_name), אימייל (נעול), טלפון. ולידציה: לפחות 9 ספרות, נרמול ל-`+972XXXXXXXXX`. **כל משתמש בלי טלפון מנותב לכאן אוטומטית** (חוץ מ-`/` ו-`/Welcome`) |
-| 4 | `/Home` (Explore, דף הבית) | מחובר | קרוסלת באנרים (מ-SiteSettings `home_banner_N`), חיפוש לפי שם/מיקום, סינון קיבולת (הכל / קטן 1-4 / בינוני 5-8 / גדול 9+), כרטיסי משרד: תמונה, תגית מחיר (`₪` בעברית / `$` באנגלית) + "/hr", שם, קיבולת, מיקום, אייקוני שירותים, "הזמן עכשיו". מציג רק `is_available=true` |
+| 3א | `/TermsOfUse` (תקנון) | מחובר עם טלפון שלא חתם | כותרת "תנאי שימוש" + "קראו את התקנון ואשרו כדי להמשיך", כפתור חזרה, **תקנון מלא בעברית ובאנגלית בפורמט Markdown** (15 פרקים, כ-13,700 תווים: כללי והגדרות, זכאות השוכר, הזמנות ושעות, תעריפים ותשלום, ביטולים, … דין וסמכות שיפוט, חתימה דיגיטלית), כפתור **"אני מאשר את התנאים"** → שומר `terms_accepted=true` + `terms_accepted_date` ומעביר לדף הבית. **כל משתמש עם טלפון שלא חתם מנותב לכאן אוטומטית** (חוץ מ-`/` ו-`/Welcome`). בתקנון יש מצייני מקום שעוד לא מולאו (`[שם העסק]`, `[X]`, `[14]`, `[עיר/מחוז]`) |
+| 4 | `/Home` (Explore, דף הבית) | מחובר | קרוסלת באנרים (מ-SiteSettings `home_banner_N`), כותרת ותיאור מהמיתוג (`brand_title` / `brand_description`, ברירת מחדל "Office Booking" / "Find and book your perfect workspace"), חיפוש לפי שם/מיקום, סינון קיבולת (הכל / קטן 1-4 / בינוני 5-8 / גדול 9+), כרטיסי משרד: תמונה, תגית מחיר (`₪` בעברית / `$` באנגלית) + "/hr", שם, קיבולת, מיקום, עד 3 תגיות שירותים, "הזמן עכשיו". מציג רק `is_available=true` |
 | 5 | `/BookOffice?id=` | מחובר | פרטי משרד, תעריף שעתי, אייקוני שירותים (WiFi, Projector, Coffee, Parking, Phone), **לוח שנה** (מהיום ועד שבועיים קדימה – "ניתן להזמין עד שבועיים מראש"), **משבצות שעה 08:00–22:00**, משבצות תפוסות מסומנות "תפוס", בחירת טווח, הערות, סיכום (שעות + מחיר כולל), "אישור הזמנה" → מסך "ההזמנה אושרה!" עם "צפייה בהזמנות שלי" / "הזמנה נוספת" |
-| 6 | `/MyBookings` | מחובר | טאבים "קרובות" / "עבר" עם מונה, כרטיס הזמנה עם תגית סטטוס (מאושר=ירוק, בוטל=אדום, הושלם=אפור), ביטול עם דיאלוג אישור ("פעולה זו לא ניתנת לביטול"), מצב ריק + "הזמינו משרד" |
+| 6 | `/MyBookings` | מחובר | טאבים "קרובות" (מאושרות מהיום והלאה, ממוינות לפי תאריך ושעה) / "עבר" עם מונה, כרטיס הזמנה עם תגית סטטוס (מאושר=ירוק, בוטל=אדום, הושלם=אפור), ביטול עם דיאלוג אישור ("פעולה זו לא ניתנת לביטול") – **שומר גם `cancelled_at`**, מצב ריק + "הזמינו משרד" |
 | 7 | `/AdminOffices` | Admin | רשימת משרדים, הוספה/עריכה בדיאלוג (שם, תיאור, תמונה – העלאה או URL, קיבולת, מחיר לשעה, מיקום, שירותים מופרדים בפסיק, זמין להזמנה), מחיקה עם אישור, **ניהול באנרים לדף הבית** (הוספה בהעלאה/URL, מחיקה) |
-| 8 | `/AdminUsers` | Admin | מונה משתמשים, חלוקה ל"מנהלים" / "משתמשים", לכל אחד: שם, אימייל, תאריך הצטרפות; **הזמנת משתמש** (אימייל + תפקיד), הגדר כמנהל / כמשתמש, עריכה (שם, אימייל, טלפון, תפקיד), מחיקה (מוחקת גם את ההזמנות שלו) |
-| 9 | `/AdminAnalytics` | Admin | בורר "השבוע" / "החודש", סה״כ הזמנות, סה״כ שעות, הכנסות, **שימוש לפי משתמש** (הזמנות, שעות, הוצא) |
+| 8 | `/AdminUsers` | Admin | מונה משתמשים, חלוקה ל"מנהלים" / "משתמשים", לכל אחד: שם, אימייל, תאריך הצטרפות, **סטטוס תקנון** ("נחתם · תאריך" / "לא נחתם"); **הזמנת משתמש** (אימייל + תפקיד), הגדר כמנהל / כמשתמש (לא על עצמך), עריכה (שם, אימייל, טלפון, תפקיד), מחיקה (מוחקת גם את ההזמנות שלו), **כפתור "Bookings" → חלון "ההזמנות של X"**: לכל הזמנה משרד, תאריך, שעות, משך, מחיר, סטטוס (עתידית / עבר / בוטל) ותאריך ביטול |
+| 9 | `/AdminAnalytics` | Admin | בורר "השבוע" (שבוע מתחיל ביום שני) / "החודש" + טווח התאריכים, סה״כ הזמנות, סה״כ שעות, הכנסות, **שימוש לפי משתמש** (דירוג, שם, אימייל, הזמנות, שעות, הוצא) – רק הזמנות מאושרות, בלי מנהלים, ממוין לפי שעות |
 | 10 | `/AdminBookings` | Admin | עד 500 הזמנות, מיון: קרובות קודם (עולה), אח"כ עבר (יורד). כרטיס: משרד, סטטוס, תאריך מלא, שעות + משך, שם המזמין. עריכה (משרד, מזמין, תאריך, שעות) עם בדיקת התנגשות, ביטול. **הזמנה חוזרת (Repeated Booking):** משרד, מזמין, שעת התחלה/סיום, ימים בשבוע (א'-ש'), מתאריך–עד תאריך (ברירת מחדל חודש), הערות → יוצר הזמנות בכמות, מדלג על משבצות תפוסות ומציג "X נוצרו, Y דולגו" |
-| 11 | `/SiteSettingsPage` | Admin | תמונת באנר ראשית (`home_banner_image`) – העלאה או URL, "Save Settings" |
-| 12 | `/TermsOfUse` | כולם | **קיים לינק אבל אין דף** (מחזיר 404 היום) – לבנות דף סטטי |
+| 11 | `/SiteSettingsPage` | Admin | תמונת באנר ראשית (`home_banner_image`) – העלאה או URL; **מיתוג (Branding):** כותרת הדף, תיאור הדף, לוגו (העלאה או URL + תצוגה מקדימה), צבע כפתורים (ברירת מחדל `#3B6A8F`), צבע רקע (`#F3F6F9`), צבע כרטיסים/דפים (`#FFFFFF`), "Save Branding". הצבעים מוחלים על כל האפליקציה כמשתני CSS (`--primary`, `--background`, `--card`) |
+| 12 | — | — | (מסך התקנון הועבר לשורה 3א) |
 | 13 | 404 | כולם | "Page Not Found" |
 | 14 | Access Restricted | משתמש לא רשום | "You are not registered to use this application…" |
 
@@ -38,10 +41,10 @@
 
 | ישות | שדות |
 |---|---|
-| **User** | `id, email, full_name, first_name, last_name, phone_number, role (admin/user), created_date` |
+| **User** | `id, email, full_name, first_name, last_name, phone_number, role (admin/user), terms_accepted, terms_accepted_date, created_date` |
 | **Office** | `id, name, description, image_url, capacity, hourly_rate, amenities[], location, is_available, created_date` |
-| **Booking** | `id, office_id, office_name, booker_name, date (yyyy-MM-dd), start_time, end_time (HH:mm), duration_hours, total_price, status (confirmed/cancelled/completed), notes, created_by_id, created_date` |
-| **SiteSettings** | `id, key, value` – מפתחות: `home_banner_image`, `home_banner_1..N` |
+| **Booking** | `id, office_id, office_name, booker_name, date (yyyy-MM-dd), start_time, end_time (HH:mm), duration_hours, total_price, status (confirmed/cancelled/completed), notes, cancelled_at, created_by_id, created_date` |
+| **SiteSettings** | `id, key, value` – מפתחות: `home_banner_image`, `home_banner_1..N`, `brand_title`, `brand_description`, `brand_logo`, `brand_buttons_color`, `brand_background_color`, `brand_pages_color` |
 
 פעולות נוספות: העלאת קבצים (`UploadFile` → `file_url`), הזמנת משתמש (`invite-user`), הרשמה + אימות OTP, איפוס סיסמה, Google OAuth.
 
@@ -51,7 +54,8 @@
 3. מגבלת "שבועיים קדימה" ושעות 08–22 נאכפות רק ב-UI → ייאכפו בשרת.
 4. סטטוס `completed` לא מתעדכן אוטומטית → Job יומי / חישוב בזמן קריאה.
 5. מטבע מוצג לפי שפה (₪/$) אבל המספר זהה → מטבע אחד (₪) לכל המערכת.
-6. דף `TermsOfUse` חסר.
+6. התקנון קבוע בקוד (hardcoded) ובו מצייני מקום לא ממולאים → בבנייה מחדש: נשמר ב-DB, ניתן לעריכה ע"י מנהל, **עם מספר גרסה**, וכל שינוי מחייב חתימה מחדש.
+7. סטטיסטיקת משתמש באנליטיקה מתאימה הזמנות לפי `created_by` (אימייל) – שינוי אימייל מנתק היסטוריה → התאמה לפי `userId`.
 
 ---
 
@@ -140,6 +144,7 @@ FullStack/
 { "_id": ObjectId, "email": "a@b.com", "passwordHash": "...|null", "googleSub": "...|null",
   "firstName": "", "lastName": "", "fullName": "", "phoneNumber": "+9725...",
   "role": "user|admin", "emailVerified": true, "status": "active|invited",
+  "termsAcceptedVersion": 3, "termsAcceptedAt": ISODate|null,   // חתימה על התקנון
   "createdAt": ISODate, "updatedAt": ISODate }
 
 // offices
@@ -153,10 +158,16 @@ FullStack/
   "slots": ["09:00","10:00","11:00"],          // ← לנעילת התנגשויות
   "durationHours": 3, "totalPrice": 150, "status": "confirmed|cancelled|completed",
   "notes": "", "seriesId": ObjectId|null,      // הזמנה חוזרת
+  "cancelledAt": ISODate|null, "cancelledById": ObjectId|null,
   "createdById": ObjectId, "createdAt": ISODate }
 
-// siteSettings
+// siteSettings  (באנרים + מיתוג)
 { "_id": ObjectId, "key": "home_banner_1", "value": "https://..." }
+{ "_id": ObjectId, "key": "brand_buttons_color", "value": "#3B6A8F" }
+
+// terms  (תקנון עם גרסאות)
+{ "_id": ObjectId, "version": 3, "contentHe": "## 1. כללי...", "contentEn": "## 1. General...",
+  "publishedAt": ISODate, "publishedById": ObjectId }
 
 // authTokens  (refresh / reset / invite / OTP) – עם TTL
 { "_id": ObjectId, "userId": ObjectId, "type": "refresh|reset|invite|otp",
@@ -173,6 +184,7 @@ FullStack/
 | bookings | `{ userId: 1, date: -1 }` | ההזמנות שלי |
 | bookings | `{ date: 1, status: 1 }` | אנליטיקה + ניהול |
 | siteSettings | `{ key: 1 }` unique | |
+| terms | `{ version: -1 }` unique | הגרסה האחרונה |
 | authTokens | `{ expiresAt: 1 }` TTL (expireAfterSeconds: 0) | ניקוי אוטומטי |
 
 > אם ההוספה נכשלת עם `DuplicateKey` (E11000) → השרת מחזיר `409 Conflict` "המשבצת נתפסה".
@@ -193,6 +205,10 @@ FullStack/
 | POST | `/api/auth/accept-invite` | `{token, password}` – משתמש שהוזמן |
 | GET | `/api/me` | המשתמש הנוכחי |
 | PUT | `/api/me` | `{firstName, lastName, phone}` – נרמול ל-`+972` בשרת |
+| GET | `/api/terms/current` | התקנון העדכני (he/en + גרסה) |
+| POST | `/api/me/accept-terms` | `{version}` – שומר גרסה + תאריך חתימה (השרת קובע את הזמן) |
+
+> `GET /api/me` מחזיר גם `needsProfile` ו-`needsTerms`, וה-Frontend מנתב לפיהם. בנוסף, middleware בשרת חוסם `POST /api/bookings` למשתמש שלא חתם על הגרסה העדכנית (`403 terms_required`).
 
 **Offices**
 | GET | `/api/offices?search=&size=small|medium|large` | רק זמינים (משתמש) |
@@ -204,7 +220,7 @@ FullStack/
 **Bookings**
 | POST | `/api/bookings` | `{officeId, date, startTime, endTime, notes}` – השרת מאמת: תאריך ≤ היום+14, שעות בטווח 08–22, endTime>startTime, משרד זמין; מחשב slots, duration, price |
 | GET | `/api/bookings/mine?tab=upcoming|past` | ההזמנות שלי |
-| POST | `/api/bookings/{id}/cancel` | ביטול (בעלים או Admin) |
+| POST | `/api/bookings/{id}/cancel` | ביטול (בעלים או Admin) – שומר `cancelledAt` + `cancelledById` |
 | GET | `/api/admin/bookings?limit=500` | כל ההזמנות, ממוינות כמו היום |
 | PUT | `/api/admin/bookings/{id}` | עריכה + בדיקת התנגשות |
 | POST | `/api/admin/bookings/recurring` | `{officeId, userId/bookerName, startTime, endTime, days:[0..6], fromDate, toDate, notes}` → `{created, skipped}` (insertMany עם `ordered:false`, כפולים נספרים כ-skipped) |
@@ -214,13 +230,17 @@ FullStack/
 | POST | `/api/admin/users/invite` | `{email, role}` → אימייל הזמנה |
 | PUT | `/api/admin/users/{id}` | עריכת שם/אימייל/טלפון/תפקיד |
 | DELETE | `/api/admin/users/{id}` | מחיקה + מחיקת כל ההזמנות שלו (טרנזקציה) |
+| GET | `/api/admin/users/{id}/bookings` | ההזמנות של משתמש (חלון "ההזמנות של X") |
 
 **Analytics (Admin)**
-| GET | `/api/admin/analytics?period=week|month` | Aggregation pipeline: `$match` (status≠cancelled, טווח תאריכים) → `$group` כללי (count, sum hours, sum price) + `$group` לפי userId |
+| GET | `/api/admin/analytics?period=week|month` | Aggregation pipeline: `$match` (status=confirmed, טווח תאריכים, שבוע מיום שני) → `$group` כללי (count, sum hours, sum price) + `$group` לפי userId (בלי מנהלים, ממוין לפי שעות) |
 
 **Settings + Upload**
 | GET | `/api/settings/banners` | ציבורי למשתמשים מחוברים |
+| GET | `/api/settings/public` | מיתוג (כותרת, תיאור, לוגו, 3 צבעים) + באנרים – בקריאה אחת, עם Cache |
 | GET/PUT | `/api/admin/settings/{key}` | `home_banner_image` |
+| PUT | `/api/admin/settings/branding` | `{title, description, logo, buttonsColor, backgroundColor, pagesColor}` – ולידציה ל-`#RRGGBB` |
+| PUT | `/api/admin/terms` | פרסום גרסת תקנון חדשה (גרסה +1) |
 | POST/DELETE | `/api/admin/settings/banners` | הוספה/מחיקה של `home_banner_N` |
 | POST | `/api/admin/upload` | multipart, עד 5MB, jpg/png/webp → R2 → `{fileUrl}` |
 
@@ -245,9 +265,11 @@ FullStack/
 - **SPA קל**: `index.html` אחד, ראוטר מבוסס `history.pushState` (תומך ב-`/BookOffice?id=` כמו היום). השרת מחזיר `index.html` לכל נתיב שאינו `/api` (fallback).
 - **ES Modules מקוריים** (`<script type="module">`) – בלי build step. אופציונלי: `esbuild` לאיחוד וכיווץ בייצור.
 - רכיבים = פונקציות שמחזירות `HTMLElement` (או Web Components למורכבים: `<ho-calendar>`, `<ho-time-slots>`, `<ho-carousel>`).
+- **מיתוג דינמי:** בעלייה נטען `/api/settings/public` ומוגדרים `--primary`, `--background`, `--card` על `:root` – כל ה-CSS משתמש רק במשתנים, כך שהחלפת צבע במסך ההגדרות משנה את כל האפליקציה בלי build.
+- **תקנון:** ה-Markdown מוצג עם `marked` (CDN, ~40KB) + `DOMPurify` לסינון HTML.
 - כל הטקסטים דרך `t('key')` – אותם מפתחות כמו היום (`premiumOffices`, `bookNow`, `maxTwoWeeks` …) בקבצי `en.json` / `he.json`.
 - `api.js`: מוסיף `Authorization`, מנסה refresh אוטומטית ב-401, מציג toast בשגיאה.
-- Guard-ים בראוטר: לא מחובר → `/login`; אין טלפון → `/Register`; לא Admin → "נדרשת הרשאת מנהל".
+- Guard-ים בראוטר (בסדר הזה): לא מחובר → `/login`; אין טלפון → `/Register`; לא חתם על התקנון העדכני → `/TermsOfUse`; לא Admin → "נדרשת הרשאת מנהל".
 
 ### 5.2 Mobile-first (רוב השימוש מנייד)
 1. `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">`.
@@ -266,7 +288,7 @@ FullStack/
 14. בדיקות על: iPhone SE (375), iPhone 14 (390), Pixel 7 (412), iPad (768), דסקטופ – עם Playwright device emulation.
 
 ### 5.3 רכיבים לבנייה
-`BottomNav`, `TopActions` (התנתקות + שפה), `LangSwitcher`, `Carousel`, `OfficeCard`, `SearchBar`, `CapacityFilter`, `Calendar` (חסימת עבר ו->14 יום), `TimeSlots` (פנוי/תפוס/נבחר), `BookingSummary`, `BookingCard` + `StatusBadge`, `Tabs`, `Dialog/BottomSheet`, `ConfirmDialog`, `FormField`, `ImageUpload` (העלאה + URL + תצוגה מקדימה), `StatCard`, `UserRow`, `RecurringBookingForm` (בחירת ימים א'-ש'), `Toast`, `Skeleton` (3 שלדים בטעינה כמו היום), `EmptyState`, `Spinner`.
+`BottomNav`, `TopActions` (התנתקות + שפה), `LangSwitcher`, `Carousel`, `OfficeCard`, `SearchBar`, `CapacityFilter`, `Calendar` (חסימת עבר ו->14 יום), `TimeSlots` (פנוי/תפוס/נבחר), `BookingSummary`, `BookingCard` + `StatusBadge`, `Tabs`, `Dialog/BottomSheet`, `ConfirmDialog`, `FormField`, `ImageUpload` (העלאה + URL + תצוגה מקדימה), `StatCard`, `UserRow`, `RecurringBookingForm` (בחירת ימים א'-ש'), `TermsViewer` + `AcceptTermsBar` (כפתור אישור דביק בתחתית המסך בנייד), `TermsBadge` (נחתם/לא נחתם), `UserBookingsDialog`, `ColorPicker` (`<input type="color">` + שדה HEX), `BrandingForm`, `Toast`, `Skeleton` (3 שלדים בטעינה כמו היום), `EmptyState`, `Spinner`.
 
 ---
 
@@ -329,23 +351,26 @@ ENTRYPOINT ["dotnet", "HourOffice.Api.dll"]
 | **0. הקמה** | 1–2 ימים | ריפו, מבנה תיקיות, Atlas cluster, פרויקט GCP, R2 bucket, Google OAuth Client, Dockerfile, pipeline ריק שמפרסם "Hello" |
 | **1. תשתית Backend** | 2–3 ימים | `MongoContext`, אינדקסים, מודלים, טיפול שגיאות גלובלי (ProblemDetails), Serilog, Health check `/healthz` |
 | **2. אימות** | 3–4 ימים | register + OTP, login, Google, refresh, logout, forgot/reset, invite/accept, `/api/me`, Policy Admin, Seed admin |
+| **2א. תקנון** | 2 ימים | collection `terms` עם גרסאות, Seed מהתקנון הקיים (he/en), `accept-terms`, middleware שחוסם הזמנה בלי חתימה, מסך TermsOfUse + Guard |
 | **3. תשתית Frontend** | 3 ימים | `index.html`, tokens/base/components CSS, router, api.js, i18n (en/he + RTL), Layout: TopActions + BottomNav, Toast, Dialog/BottomSheet, Spinner/Skeleton |
 | **4. מסכי משתמש** | 4–5 ימים | Login, Welcome (קרוסלה), Register (השלמת פרופיל + Guard), Home (באנרים, חיפוש, סינון, כרטיסים) |
 | **5. הזמנה** | 4–5 ימים | API הזמנות + אינדקס ייחודי + availability; BookOffice: לוח שנה (14 יום), משבצות 08–22, טווח, סיכום, אישור, מסך הצלחה; MyBookings + ביטול |
-| **6. ניהול משרדים + העלאה** | 3 ימים | AdminOffices CRUD, ImageUpload ל-R2, ניהול באנרים, SiteSettingsPage |
-| **7. ניהול משתמשים** | 2 ימים | AdminUsers: רשימה, הזמנה, שינוי תפקיד, עריכה, מחיקה מדורגת |
+| **6. ניהול משרדים + העלאה** | 3–4 ימים | AdminOffices CRUD, ImageUpload ל-R2, ניהול באנרים, SiteSettingsPage כולל מיתוג (כותרת, תיאור, לוגו, 3 צבעים) |
+| **7. ניהול משתמשים** | 2–3 ימים | AdminUsers: רשימה, סטטוס תקנון, הזמנה, שינוי תפקיד, עריכה, מחיקה מדורגת, חלון "ההזמנות של X" |
 | **8. ניהול הזמנות** | 3 ימים | AdminBookings: רשימה ומיון, עריכה עם בדיקת התנגשות, ביטול, הזמנה חוזרת (created/skipped) |
 | **9. אנליטיקה** | 2 ימים | Aggregation שבוע/חודש, StatCards, שימוש לפי משתמש |
-| **10. השלמות** | 2 ימים | TermsOfUse, 404, Access Restricted, PWA (manifest + SW), Job לסימון `completed` |
+| **10. השלמות** | 2 ימים | 404, Access Restricted, PWA (manifest + SW), Job לסימון `completed` |
 | **11. בדיקות ו-QA** | 3–4 ימים | Unit + Integration (Testcontainers), בדיקת מקביליות להזמנה כפולה, Playwright E2E על 4 גדלי מסך בעברית ובאנגלית, Lighthouse נייד ≥ 90 |
 | **12. העברת נתונים ועלייה לאוויר** | 1–2 ימים | ייצוא נתונים מ-Base44 (CSV/JSON ממסך הנתונים של Base44) → סקריפט import ל-Mongo (מיפוי `snake_case` → `camelCase`, `office_id` → `ObjectId`), דומיין, Budget alert, ניטור |
 
-**סה״כ:** כ-6–8 שבועות למפתח אחד.
+**סה״כ:** כ-7–9 שבועות למפתח אחד.
 
 ---
 
 ## 8. בדיקות קבלה (Definition of Done)
-- [ ] כל 14 המסכים מ-§1.1 עובדים, כולל כל הטקסטים בעברית ובאנגלית.
+- [ ] כל המסכים מ-§1.1 עובדים, כולל כל הטקסטים בעברית ובאנגלית.
+- [ ] משתמש שלא חתם על גרסת התקנון העדכנית לא יכול להזמין (גם לא ב-API ישיר), ומנהל רואה מי חתם ומתי.
+- [ ] שינוי צבעים/לוגו במסך ההגדרות משנה מיד את כל האפליקציה.
 - [ ] אי אפשר ליצור שתי הזמנות מאושרות שחופפות באותו משרד ובאותה שעה – גם בשתי בקשות במקביל.
 - [ ] אי אפשר להזמין לעבר, מעבר ל-14 יום, או מחוץ ל-08:00–22:00 – גם ב-API ישיר.
 - [ ] משתמש בלי טלפון לא יכול להגיע לאף מסך חוץ מ-Welcome / Register.
