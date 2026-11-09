@@ -1,0 +1,95 @@
+/* Design tokens. --primary / --background / --card are overwritten at runtime from the admin "Branding" settings. */
+:root {
+  --primary: #3B6A8F;
+  --primary-contrast: #ffffff;
+  --background: #F3F6F9;
+  --card: #FFFFFF;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  --border: #e2e8f0;
+  --surface-2: #f1f5f9;
+  --success-bg: #d1fae5; --success-fg: #047857;
+  --danger-bg: #fee2e2;  --danger-fg: #b91c1c; --danger: #dc2626;
+  --neutral-bg: #f1f5f9; --neutral-fg: #475569;
+  --warning-bg: #fef3c7; --warning-fg: #92400e;
+
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 24px;
+  --shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px rgb(15 23 42 / 0.06);
+  --shadow-lg: 0 20px 50px rgb(15 23 42 / 0.18);
+
+  --gutter: 16px;
+  --tap: 44px;              /* minimum touch target */
+  --nav-h: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --content-max: 560px;
+
+  --font: "Heebo", "Assistant", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--background);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+img { max-width: 100%; display: block; }
+img.broken { visibility: hidden; }
+#app { position: relative; }
+button, input, select, textarea { font: inherit; color: inherit; }
+/* iOS zooms into inputs smaller than 16px */
+input, select, textarea { font-size: 16px; }
+a { color: var(--primary); }
+h1, h2, h3, p { margin: 0; }
+h1 { font-size: clamp(1.35rem, 5vw, 1.6rem); line-height: 1.25; font-weight: 700; }
+h2 { font-size: 1.125rem; font-weight: 600; }
+h3 { font-size: 1rem; font-weight: 600; }
+.muted { color: var(--text-muted); }
+.faint { color: var(--text-faint); }
+.small { font-size: 0.875rem; }
+.xs { font-size: 0.75rem; }
+.bold { font-weight: 600; }
+.center { text-align: center; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); border: 0; }
+
+/* Layout helpers – logical properties only, so the same CSS works in RTL and LTR. */
+.page { min-height: 100dvh; padding-block-end: calc(var(--nav-h) + var(--safe-bottom) + 24px); }
+.page.no-nav { padding-block-end: calc(24px + var(--safe-bottom)); }
+.container { width: 100%; max-width: var(--content-max); margin-inline: auto; padding-inline: var(--gutter); }
+.container.wide { --content-max: 960px; }
+.stack { display: flex; flex-direction: column; gap: var(--gap, 12px); }
+.row { display: flex; align-items: center; gap: var(--gap, 8px); }
+.row.wrap { flex-wrap: wrap; }
+.between { justify-content: space-between; }
+.grow { flex: 1 1 auto; min-width: 0; }
+.grid-cards { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.fullscreen-center { min-height: 100dvh; display: grid; place-items: center; padding: var(--gutter); }
+
+@media (min-width: 640px) {
+  :root { --gutter: 24px; }
+  .grid-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .container.wide .grid-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Flip direction-sensitive icons in RTL */
+[dir="rtl"] .flip-rtl { transform: scaleX(-1); }
+
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--primary) 45%, transparent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

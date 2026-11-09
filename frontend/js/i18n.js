@@ -1,0 +1,150 @@
+// UI texts. Keys from the original app are kept so the wording stays the same.
+const dict = {
+  en: {
+    premiumOffices: "Premium Office Spaces", bookProfessional: "Book professional workspaces by the hour",
+    flexibleBooking: "Flexible Booking", chooseYourTime: "Choose your time, choose your space",
+    modernAmenities: "Modern Amenities", everythingYouNeed: "Everything you need to work productively",
+    perfectForTeams: "Perfect for Teams", spacesForCollaboration: "Spaces designed for collaboration",
+    exploreOffices: "Explore Offices", hourly: "Hourly", primeLocation: "Prime Location", anySize: "Any Size",
+    availableSpaces: "Available spaces ready to book instantly", officeBooking: "Office Booking",
+    findAndBook: "Find and book by the hour", searchOffices: "Search offices...", filterByCapacity: "Filter by capacity",
+    allSizes: "All sizes", smallPeople: "Small (1-4 people)", mediumPeople: "Medium (5-8 people)", largePeople: "Large (9+ people)",
+    people: "people", bookNow: "Book Now", noOfficesFound: "No offices found", reviewDetails: "Review Booking Details",
+    selectDate: "Select Date", selectTime: "Select Time", selectTimeRange: "Tap a start hour, then an end hour",
+    notesOptional: "Notes (optional)", anySpecialReq: "Any special requirements...", totalBookings: "Total Bookings",
+    totalHours: "Total Hours", revenue: "Revenue", hours: "hours", hour: "hour", confirmBooking: "Confirm Booking",
+    booking: "Booking...", bookingConfirmed: "Booking Confirmed!", viewMyBookings: "View My Bookings", bookAnother: "Book Another",
+    officeNotFound: "Office not found", hourlyRate: "Hourly Rate", unavailable: "Unavailable", bookedSlot: "Booked",
+    maxTwoWeeks: "Bookings available up to 2 weeks ahead", myBookings: "My Bookings", upcoming: "Upcoming", past: "Past",
+    noUpcomingBookings: "No upcoming bookings", noPastBookings: "No past bookings", bookAnOffice: "Book an Office",
+    cancelBooking: "Cancel Booking?", areYouSure: "Are you sure you want to cancel your booking for",
+    cannotBeUndone: "This action cannot be undone.", keepBooking: "Keep Booking", yesCancel: "Yes, Cancel", cancel: "Cancel",
+    cancelBookingBtn: "Cancel Booking", confirmed: "Confirmed", cancelled: "Cancelled", completed: "Completed",
+    manageOffices: "Manage Offices", editPricing: "Edit pricing and availability", addOffice: "Add Office", editOffice: "Edit Office",
+    addNewOffice: "Add New Office", officeName: "Office Name", description: "Description", image: "Image",
+    capacity: "Capacity (people)", location: "Location", amenities: "Amenities (comma separated)",
+    availableForBooking: "Available for Booking", yes: "Yes", no: "No", create: "Create", update: "Update",
+    deleteOffice: "Delete Office?", deleteOfficeConfirm: "Are you sure you want to delete", delete: "Delete", available: "Available",
+    manageUsers: "Manage Users", totalUsers: "total user", totalUsersPlural: "total users", inviteUser: "Add User",
+    inviteNewUser: "Add New User", emailAddress: "Email Address", role: "Role", user: "User", admin: "Admin",
+    sendInvite: "Add User", inviting: "Adding...", administrators: "Administrators", users: "Users", joined: "Joined",
+    noUsersYet: "No users yet", deleteUser: "Delete User?", deleteUserConfirm: "Are you sure you want to delete",
+    willRemoveBookings: "This will also remove all their bookings.", setAsAdmin: "Make Admin", setAsUser: "Make User",
+    updatingRole: "Updating...", usageAnalytics: "Usage Analytics", thisWeek: "This Week", thisMonth: "This Month",
+    usageByUser: "Usage by User", bookings: "Bookings", spent: "Spent", noBookingsInPeriod: "No bookings in this period",
+    adminAccessRequired: "Admin access required", manageBookings: "Manage Bookings", allBookings: "total bookings",
+    editBooking: "Edit Booking", bookingName: "Booking Name", noBookings: "No bookings yet", explore: "Explore",
+    offices: "Offices", analytics: "Analytics", profileSetupTitle: "Complete Your Profile",
+    profileSetupSubtitle: "Please fill in your details to continue", firstName: "First Name", lastName: "Last Name",
+    phoneNumber: "Phone Number", save: "Save & Continue", saving: "Saving...",
+    termsAccept: "I Accept the Terms", termsAccepting: "Accepting...", termsNotSigned: "Not signed", termsSigned: "Signed",
+    termsSignedOn: "Signed on", termsTitle: "Terms of Use", termsViewTerms: "View Terms of Use",
+    termsReadAndAccept: "Read and accept to continue",
+    // New in the rebuild
+    welcomeTo: "Welcome to", signInToContinue: "Sign in to continue", signInWithGoogle: "Sign in with Google",
+    devLogin: "Developer sign-in", devLoginHint: "Local development only", name: "Name", signIn: "Sign in",
+    logout: "Log out", language: "Language", accessRestricted: "Access Restricted",
+    notRegistered: "You are not registered to use this application. Please contact the app administrator to request access.",
+    pageNotFound: "Page Not Found", goHome: "Go Home", back: "Back", retry: "Try again", loadingFailed: "Something went wrong, please try again.",
+    invalidPhone: "Please enter a valid phone number", settings: "Settings", siteSettings: "Site Settings",
+    homeBanners: "Home page banners", addBanner: "Add banner", uploadImage: "Upload image", orPasteUrl: "Or paste image URL",
+    uploading: "Uploading...", saveSettings: "Save Settings", saved: "Saved", branding: "Branding", pageTitle: "Page Title",
+    pageDescription: "Page Description", logo: "Logo", buttonsColor: "Buttons color", backgroundColor: "Background color",
+    pagesColor: "Cards color", saveBranding: "Save Branding", mainBannerImage: "Main banner image",
+    editTerms: "Edit terms of use", termsHebrew: "Hebrew", termsEnglish: "English", publishNewVersion: "Publish new version",
+    publishTermsConfirm: "Publishing a new version will require every user to sign again. Continue?",
+    version: "Version", repeatedBooking: "Repeated Booking", office: "Office", bookFor: "Book for", startTime: "Start",
+    endTime: "End", fromDate: "From date", toDate: "To date", days: "Days", createBookings: "Create bookings",
+    bookingsCreated: "bookings created", slotsSkipped: "slots already booked (skipped)", done: "Done", date: "Date",
+    edit: "Edit", editUser: "Edit User", fullName: "Full Name", invited: "Invited", userBookings: "Bookings of",
+    selectOffice: "Select office", selectUser: "Select user", rank: "#", cancelledOn: "Cancelled on", total: "Total",
+    duration: "Duration", slotTaken: "One or more of the selected hours were just booked. Please choose again.",
+    rangeHasBooked: "The selected range includes booked hours.", chooseEndAfterStart: "Tap an end hour after the start hour.",
+    notesLabel: "Notes", openHours: "Opening hours", you: "You", amenitiesShort: "Amenities",
+    noBannersYet: "No banners yet", signedTermsRequired: "Please sign the terms of use before booking.",
+    perHour: "/hr", dayShort: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  },
+  he: {
+    premiumOffices: "משרדים פרימיום", bookProfessional: "הזמינו משרדים מקצועיים לפי שעה", flexibleBooking: "הזמנה גמישה",
+    chooseYourTime: "בחרו את הזמן, בחרו את המרחב", modernAmenities: "שירותים מודרניים",
+    everythingYouNeed: "כל מה שצריך לעבודה פרודוקטיבית", perfectForTeams: "מושלם לצוותים",
+    spacesForCollaboration: "מרחבים המיועדים לשיתוף פעולה", exploreOffices: "חקרו משרדים", hourly: "לפי שעה",
+    primeLocation: "מיקום מרכזי", anySize: "כל גודל", availableSpaces: "מרחבים זמינים להזמנה מיידית",
+    officeBooking: "הזמנת משרדים", findAndBook: "מצאו והזמינו לפי שעה", searchOffices: "חיפוש משרדים...",
+    filterByCapacity: "סינון לפי קיבולת", allSizes: "כל הגדלים", smallPeople: "קטן (1-4 אנשים)",
+    mediumPeople: "בינוני (5-8 אנשים)", largePeople: "גדול (9+ אנשים)", people: "אנשים", bookNow: "הזמן עכשיו",
+    noOfficesFound: "לא נמצאו משרדים", reviewDetails: "בדקו פרטי הזמנה", selectDate: "בחירת תאריך", selectTime: "בחירת שעה",
+    selectTimeRange: "הקישו על שעת התחלה ואז על שעת סיום", notesOptional: "הערות (אופציונלי)", anySpecialReq: "דרישות מיוחדות...",
+    totalBookings: "סה״כ הזמנות", totalHours: "סה״כ שעות", revenue: "הכנסות", hours: "שעות", hour: "שעה",
+    confirmBooking: "אישור הזמנה", booking: "מזמין...", bookingConfirmed: "ההזמנה אושרה!", viewMyBookings: "צפייה בהזמנות שלי",
+    bookAnother: "הזמנה נוספת", officeNotFound: "המשרד לא נמצא", hourlyRate: "תעריף שעתי", unavailable: "לא זמין",
+    bookedSlot: "תפוס", maxTwoWeeks: "ניתן להזמין עד שבועיים מראש", myBookings: "ההזמנות שלי", upcoming: "קרובות", past: "עבר",
+    noUpcomingBookings: "אין הזמנות קרובות", noPastBookings: "אין הזמנות קודמות", bookAnOffice: "הזמינו משרד",
+    cancelBooking: "לבטל הזמנה?", areYouSure: "האם אתם בטוחים שברצונכם לבטל את ההזמנה עבור",
+    cannotBeUndone: "פעולה זו לא ניתנת לביטול.", keepBooking: "שמור הזמנה", yesCancel: "כן, בטל", cancel: "ביטול",
+    cancelBookingBtn: "בטל הזמנה", confirmed: "מאושר", cancelled: "בוטל", completed: "הושלם", manageOffices: "ניהול משרדים",
+    editPricing: "עריכת תמחור וזמינות", addOffice: "הוספת משרד", editOffice: "עריכת משרד", addNewOffice: "הוספת משרד חדש",
+    officeName: "שם המשרד", description: "תיאור", image: "תמונה", capacity: "קיבולת (אנשים)", location: "מיקום",
+    amenities: "שירותים (מופרדים בפסיק)", availableForBooking: "זמין להזמנה", yes: "כן", no: "לא", create: "יצירה",
+    update: "עדכון", deleteOffice: "למחוק משרד?", deleteOfficeConfirm: "האם אתם בטוחים שברצונכם למחוק את", delete: "מחיקה",
+    available: "זמין", manageUsers: "ניהול משתמשים", totalUsers: "משתמש", totalUsersPlural: "משתמשים",
+    inviteUser: "הוספת משתמש", inviteNewUser: "הוספת משתמש חדש", emailAddress: "כתובת אימייל", role: "תפקיד", user: "משתמש",
+    admin: "מנהל", sendInvite: "הוספה", inviting: "מוסיף...", administrators: "מנהלים", users: "משתמשים", joined: "הצטרף",
+    noUsersYet: "אין משתמשים עדיין", deleteUser: "למחוק משתמש?", deleteUserConfirm: "האם אתם בטוחים שברצונכם למחוק את",
+    willRemoveBookings: "פעולה זו תמחק גם את כל ההזמנות שלו.", setAsAdmin: "הגדר כמנהל", setAsUser: "הגדר כמשתמש",
+    updatingRole: "מעדכן...", usageAnalytics: "ניתוח שימוש", thisWeek: "השבוע", thisMonth: "החודש",
+    usageByUser: "שימוש לפי משתמש", bookings: "הזמנות", spent: "הוצא", noBookingsInPeriod: "אין הזמנות בתקופה זו",
+    adminAccessRequired: "נדרשת הרשאת מנהל", manageBookings: "ניהול הזמנות", allBookings: "הזמנות", editBooking: "עריכת הזמנה",
+    bookingName: "שם ההזמנה", noBookings: "אין הזמנות עדיין", explore: "חדרים", offices: "משרדים", analytics: "ניתוח",
+    profileSetupTitle: "השלמת פרופיל", profileSetupSubtitle: "אנא מלאו את פרטיכם כדי להמשיך", firstName: "שם פרטי",
+    lastName: "שם משפחה", phoneNumber: "מספר טלפון", save: "שמור והמשך", saving: "שומר...",
+    termsAccept: "אני מאשר את התנאים", termsAccepting: "מאשר...", termsNotSigned: "לא נחתם", termsSigned: "נחתם",
+    termsSignedOn: "נחתם ב", termsTitle: "תנאי שימוש", termsViewTerms: "צפייה בתנאי שימוש",
+    termsReadAndAccept: "קראו את התקנון ואשרו כדי להמשיך",
+    welcomeTo: "ברוכים הבאים ל", signInToContinue: "התחברו כדי להמשיך", signInWithGoogle: "התחברות עם Google",
+    devLogin: "כניסת מפתחים", devLoginHint: "לפיתוח מקומי בלבד", name: "שם", signIn: "כניסה", logout: "התנתקות",
+    language: "שפה", accessRestricted: "הגישה מוגבלת",
+    notRegistered: "אינכם רשומים לשימוש באפליקציה. פנו למנהל המערכת כדי לקבל גישה.", pageNotFound: "הדף לא נמצא",
+    goHome: "לדף הבית", back: "חזרה", retry: "נסו שוב", loadingFailed: "אירעה שגיאה, אנא נסו שנית.",
+    invalidPhone: "אנא הזינו מספר טלפון תקין", settings: "הגדרות", siteSettings: "הגדרות האתר", homeBanners: "באנרים לדף הבית",
+    addBanner: "הוספת באנר", uploadImage: "העלאת תמונה", orPasteUrl: "או הדביקו כתובת תמונה", uploading: "מעלה...",
+    saveSettings: "שמירת הגדרות", saved: "נשמר", branding: "מיתוג", pageTitle: "כותרת הדף", pageDescription: "תיאור הדף",
+    logo: "לוגו", buttonsColor: "צבע כפתורים", backgroundColor: "צבע רקע", pagesColor: "צבע כרטיסים", saveBranding: "שמירת מיתוג",
+    mainBannerImage: "תמונת באנר ראשית", editTerms: "עריכת תנאי השימוש", termsHebrew: "עברית", termsEnglish: "אנגלית",
+    publishNewVersion: "פרסום גרסה חדשה", publishTermsConfirm: "פרסום גרסה חדשה יחייב את כל המשתמשים לחתום מחדש. להמשיך?",
+    version: "גרסה", repeatedBooking: "הזמנה חוזרת", office: "משרד", bookFor: "עבור", startTime: "התחלה", endTime: "סיום",
+    fromDate: "מתאריך", toDate: "עד תאריך", days: "ימים", createBookings: "יצירת הזמנות", bookingsCreated: "הזמנות נוצרו",
+    slotsSkipped: "משבצות כבר תפוסות (דולגו)", done: "סיום", date: "תאריך", edit: "עריכה", editUser: "עריכת משתמש",
+    fullName: "שם מלא", invited: "ממתין לכניסה", userBookings: "ההזמנות של", selectOffice: "בחרו משרד", selectUser: "בחרו משתמש",
+    rank: "#", cancelledOn: "בוטל ב", total: "סה״כ", duration: "משך",
+    slotTaken: "אחת או יותר מהשעות שבחרתם נתפסה הרגע. אנא בחרו שוב.", rangeHasBooked: "הטווח שבחרתם כולל שעות תפוסות.",
+    chooseEndAfterStart: "בחרו שעת סיום אחרי שעת ההתחלה.", notesLabel: "הערות", openHours: "שעות פעילות", you: "את/ה",
+    amenitiesShort: "שירותים", noBannersYet: "אין באנרים עדיין", signedTermsRequired: "יש לחתום על תנאי השימוש לפני הזמנה.",
+    perHour: "לשעה", dayShort: ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"],
+  },
+};
+
+const KEY = "appLanguage"; // same key as the original app
+let lang = (() => { try { return localStorage.getItem(KEY) || "en"; } catch { return "en"; } })();
+if (!dict[lang]) lang = "en";
+
+export const getLang = () => lang;
+export const isRtl = () => lang === "he";
+export const locale = () => (lang === "he" ? "he-IL" : "en-US");
+
+export function t(key) {
+  return dict[lang][key] ?? dict.en[key] ?? key;
+}
+
+export function applyDocumentLang() {
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "he" ? "rtl" : "ltr";
+}
+
+export function setLang(next) {
+  if (!dict[next] || next === lang) return;
+  lang = next;
+  try { localStorage.setItem(KEY, next); } catch { /* private mode */ }
+  applyDocumentLang();
+  window.dispatchEvent(new CustomEvent("languagechange"));
+}
