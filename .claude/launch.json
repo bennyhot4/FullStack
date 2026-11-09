@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "api",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NoProfile", "-Command", "$env:ASPNETCORE_ENVIRONMENT='Development'; Set-Location backend/HourOffice.Api; dotnet run --no-launch-profile --urls http://localhost:5080"],
+      "port": 5080
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["frontend/dev-server.mjs", "5500"],
+      "port": 5500
+    }
+  ]
+}
