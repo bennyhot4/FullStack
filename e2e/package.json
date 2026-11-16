@@ -1,0 +1,9 @@
+{
+  "name": "houroffice-e2e",
+  "private": true,
+  "description": "Playwright smoke test (CI installs it with npm ci; frontend/ itself has no dependencies).",
+  "type": "module",
+  "devDependencies": {
+    "playwright": "1.65.1"
+  }
+}

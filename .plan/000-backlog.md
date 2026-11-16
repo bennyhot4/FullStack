@@ -9,6 +9,7 @@ Format:
 A task with no `stack:` marker touches both the API and the site.
 
 Current queue:
+- [ ] CI/CD: harden CI (SHA pins, permissions, CodeQL, zizmor, Dependabot), E2E in CI, auto-deploy staging on merge and prod on release tag with approval (Cloud Run + Cloudflare Pages, OIDC) — plan: `.plan/004-2026-11-16-ci-cd-pipeline.md`
 
 
 ## DONE
