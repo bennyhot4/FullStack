@@ -29,3 +29,6 @@ backend/HourOffice.Api/uploads/
 node_modules/
 test-results/
 playwright-report/
+# Dev-loop output (only the README is tracked)
+.orchestrate/*
+!.orchestrate/README.md

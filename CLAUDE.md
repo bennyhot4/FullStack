@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+`AGENTS.md` holds the shared rules, guardrails, skills table and repo layout (also used by Cursor and
+Copilot). It is imported here, together with the `.claude/rules/` files it imports:
+
+@AGENTS.md
+
 ## Project
 
 HourOffice: hourly office/room booking app, a rebuild of an app originally made on Base44. The full plan, data model and endpoint list are in `docs/PLAN.md` (Hebrew). Its **section 0 "החלטות" overrides everything else in the plan**:

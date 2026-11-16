@@ -1,0 +1,50 @@
+# Product Definition
+
+## Purpose
+HourOffice lets people book offices and meeting rooms by the hour, and lets the owner manage
+offices, users, bookings, branding and terms of use. It is a rebuild of an app originally made
+on Base44. The full screen-by-screen spec is `docs/PLAN.md` §1.
+
+## Product Vision
+A fast, mobile-first booking site in Hebrew and English that costs nothing to run at small
+scale, with every business rule enforced on the server.
+
+## Problem Statement
+The original app checked overlaps, prices, opening hours and the booking window only in the
+browser, kept the terms hard-coded, and matched users by email. Two people could book the same
+hour, and rules could be bypassed by calling the API directly (`docs/PLAN.md` §1.4).
+
+## Value Proposition
+- Book an office in a few taps on a phone, with live availability.
+- No double bookings — guaranteed by the database, even under concurrent requests.
+- The owner controls offices, users, banners, colors/logo and versioned terms without a developer.
+
+## Product Scope
+- In scope: Google sign-in, profile completion (phone), versioned terms acceptance, office
+  browsing/search/filter, hourly booking (08:00–22:00, up to 14 days ahead), my bookings +
+  cancel, admin: offices + banners, users (invite, role, edit, delete), bookings (edit, cancel,
+  recurring), analytics (week/month), site settings/branding, he/en with RTL, PWA.
+- Out of scope: passwords, OTP, sending emails or messages of any kind, online payment,
+  migrating data from Base44 (for now).
+
+## Target Users
+- Primary users: people who book an office or room by the hour, mostly on a phone.
+- Secondary users: the owner/admins who manage offices, users, bookings and content.
+
+## Acceptance Criteria
+Each criterion must be provable by a test or a command. (Source: `docs/PLAN.md` §8.)
+- AC01 — Quality gates: `dotnet build` and `dotnet test` pass in `backend/`, and every
+  `frontend/js/**/*.js` passes `node --check`.
+- AC02 — A user who has not accepted the current terms version cannot book, including via a
+  direct API call; admins see who accepted and when.
+- AC03 — Changing colors/logo in site settings changes the whole app immediately.
+- AC04 — Two overlapping confirmed bookings for the same office and hour are impossible, even
+  from two concurrent requests.
+- AC05 — Booking in the past, more than 14 days ahead, or outside 08:00–22:00 is rejected by the API.
+- AC06 — A user without a phone number can reach no screen except Welcome / Register.
+- AC07 — A regular user gets 403 on every `/api/admin/*` route.
+- AC08 — Deleting a user also deletes their bookings.
+- AC09 — A recurring booking skips taken slots and reports created / skipped counts.
+- AC10 — At 360px wide: no horizontal scroll, touch targets ≥ 44px, the bottom nav hides no
+  content, RTL renders correctly.
+- AC11 — Lighthouse mobile: Performance ≥ 90, Accessibility ≥ 90.
