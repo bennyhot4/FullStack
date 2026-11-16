@@ -34,7 +34,8 @@ public sealed class MongoFixture : IDisposable
         var port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
         listener.Stop();
         _process = Process.Start(new ProcessStartInfo(exe,
-            $"--dbpath \"{_dataDir}\" --port {port} --bind_ip 127.0.0.1 --quiet --nounixsocket")
+            // --nounixsocket does not exist on Windows; mongod there exits with "unrecognised option".
+            $"--dbpath \"{_dataDir}\" --port {port} --bind_ip 127.0.0.1 --quiet" + (OperatingSystem.IsWindows() ? "" : " --nounixsocket"))
         {
             RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false,
         })!;
