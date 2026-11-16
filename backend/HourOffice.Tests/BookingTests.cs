@@ -122,7 +122,7 @@ public sealed class BookingTests(MongoFixture mongo) : IDisposable
     }
 
     [Fact]
-    public async Task Search_and_capacity_filters()
+    public async Task Office_list_ignores_removed_filters()
     {
         var admin = await _app.AdminAsync();
         await TestApp.CreateOfficeAsync(admin, "Small Room", capacity: 2);
@@ -131,10 +131,11 @@ public sealed class BookingTests(MongoFixture mongo) : IDisposable
         var c = await _app.LoginAsync("s@example.com");
         async Task<string[]> Names(string q) => (await c.GetFromJsonAsync<JsonElement>("/api/offices" + q))
             .EnumerateArray().Select(o => o.GetProperty("name").GetString()!).Order().ToArray();
-        Assert.Equal(new[] { "Small Room" }, await Names("?size=small"));
-        Assert.Equal(new[] { "Team Room" }, await Names("?size=medium"));
-        Assert.Equal(new[] { "Hall" }, await Names("?size=large"));
-        Assert.Equal(new[] { "Small Room", "Team Room" }, await Names("?search=room"));
+        // Search and capacity filters were removed: the parameters are ignored, not an error.
+        var all = new[] { "Hall", "Small Room", "Team Room" };
+        Assert.Equal(all, await Names(""));
+        Assert.Equal(all, await Names("?size=small"));
+        Assert.Equal(all, await Names("?search=room"));
     }
 
     [Fact]

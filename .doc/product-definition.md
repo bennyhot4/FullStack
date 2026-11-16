@@ -21,7 +21,7 @@ hour, and rules could be bypassed by calling the API directly (`docs/PLAN.md` §
 
 ## Product Scope
 - In scope: Google sign-in, profile completion (phone), versioned terms acceptance, office
-  browsing/search/filter, hourly booking (08:00–22:00, up to 14 days ahead), my bookings +
+  office browsing, hourly booking (08:00–22:00, up to 14 days ahead), my bookings +
   cancel, admin: offices + banners, users (invite, role, edit, delete), bookings (edit, cancel,
   recurring), analytics (week/month), site settings/branding, he/en with RTL, PWA.
 - Out of scope: passwords, OTP, sending emails or messages of any kind, online payment,

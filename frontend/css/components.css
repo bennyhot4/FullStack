@@ -76,9 +76,6 @@
 .textarea { min-height: 96px; resize: vertical; }
 .input:focus, .select:focus, .textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent); }
 .input[disabled] { background: var(--surface-2); color: var(--text-muted); }
-.search { position: relative; }
-.search .icon { position: absolute; inset-inline-start: 14px; inset-block-start: 50%; transform: translateY(-50%); color: var(--text-faint); }
-.search .input { padding-inline-start: 42px; background: var(--surface-2); border-color: transparent; }
 .error-text { color: var(--danger-fg); font-size: .875rem; }
 .switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; min-height: var(--tap); }
 .switch input { width: 46px; height: 28px; appearance: none; background: var(--border); border-radius: 999px; position: relative; cursor: pointer; transition: background .15s; flex: none; }
