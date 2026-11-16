@@ -11,22 +11,7 @@ export default async function home(el) {
   const banners = s.banners.map((b) => b.url);
   if (!banners.length && s.homeBannerImage) banners.push(s.homeBannerImage);
 
-  const state = { search: "", size: "all" };
   const list = h("div", { class: "grid-cards" });
-  const search = h("input", { class: "input", type: "search", placeholder: t("searchOffices"), "aria-label": t("searchOffices"), enterkeyhint: "search" });
-  const sizes = [["all", t("allSizes")], ["small", t("smallPeople")], ["medium", t("mediumPeople")], ["large", t("largePeople")]];
-  const chips = h("div", { class: "chips", role: "group", "aria-label": t("filterByCapacity") },
-    sizes.map(([v, label]) => h("button", {
-      class: "chip", type: "button", "aria-pressed": String(v === "all"),
-      onclick: (e) => {
-        state.size = v;
-        [...chips.children].forEach((c) => c.setAttribute("aria-pressed", String(c === e.currentTarget)));
-        load();
-      },
-    }, label)));
-
-  let timer;
-  search.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => { state.search = search.value.trim(); load(); }, 250); });
 
   clear(el,
     h("header", { class: "page-header", style: { padding: 0 } },
@@ -36,19 +21,15 @@ export default async function home(el) {
           s.branding.logo ? h("img", { src: s.branding.logo, alt: "", style: { width: "44px", height: "44px", borderRadius: "12px", objectFit: "cover" } }) : null,
           h("div", { class: "header-title" },
             h("h1", null, s.branding.title || t("officeBooking")),
-            h("p", { class: "small muted" }, s.branding.description || t("findAndBook")))),
-        h("div", { class: "stack", style: { marginTop: "14px" } }, h("div", { class: "search" }, icon("search"), search), chips))),
+            h("p", { class: "small muted" }, s.branding.description || t("findAndBook")))))),
     h("div", { class: "container wide", style: { paddingBlock: "16px" } }, list));
 
   let seq = 0;
   async function load() {
     const my = ++seq;
     clear(list, skeletons(3, 280));
-    const q = new URLSearchParams();
-    if (state.search) q.set("search", state.search);
-    if (state.size !== "all") q.set("size", state.size);
     try {
-      const offices = await get(`/api/offices?${q}`);
+      const offices = await get("/api/offices");
       if (my !== seq) return;
       clear(list, offices.length ? offices.map(officeCard) : empty("search", t("noOfficesFound")));
     } catch (e) {

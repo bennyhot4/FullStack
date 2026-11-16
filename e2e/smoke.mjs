@@ -110,10 +110,6 @@ check(await dana.locator(".office-card").count() === 2, "home shows 2 offices");
 check((await dana.textContent("h1")).includes("חדרי טיפול לפי שעה"), "home uses branding title");
 await shot(dana, "home");
 await noHorizontalScroll(dana, "Home");
-await dana.fill('input[type="search"]', "קבוצות");
-await dana.waitForFunction(() => document.querySelectorAll(".office-card").length === 1);
-await dana.fill('input[type="search"]', "");
-await dana.waitForFunction(() => document.querySelectorAll(".office-card").length === 2);
 check(await dana.locator(".bottom-nav a").count() === 2, "user sees 2 nav items");
 
 step = "book";

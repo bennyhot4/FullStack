@@ -1,7 +1,7 @@
 # Agent Instructions
 
 ## communication with me
-- Please start all your responses with Hopa!
+- Please start all your responses with Hey You!
 
 ## Security
 - Never commit or expose secrets (tokens, API keys, passwords, cluster credentials, secret values).

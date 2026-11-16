@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using HourOffice.Api.Data;
 using HourOffice.Api.Services;
 using Microsoft.Extensions.Options;
@@ -12,24 +11,10 @@ public static class OfficeEndpoints
     {
         var offices = app.MapGroup("/api/offices").RequireUser();
 
-        // size: small (1-4), medium (5-8), large (9+)
-        offices.MapGet("", async (string? search, string? size, MongoContext db, CancellationToken ct) =>
+        // All available offices, newest first (search and capacity filters were removed — .plan/001).
+        offices.MapGet("", async (MongoContext db, CancellationToken ct) =>
         {
-            var f = Builders<Office>.Filter;
-            var filter = f.Eq(o => o.IsAvailable, true);
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var rx = new MongoDB.Bson.BsonRegularExpression(Regex.Escape(search.Trim()), "i");
-                filter &= f.Regex(o => o.Name, rx) | f.Regex(o => o.Location, rx);
-            }
-            filter &= size switch
-            {
-                "small" => f.Lte(o => o.Capacity, 4),
-                "medium" => f.Gt(o => o.Capacity, 4) & f.Lte(o => o.Capacity, 8),
-                "large" => f.Gt(o => o.Capacity, 8),
-                _ => f.Empty,
-            };
-            var list = await db.Offices.Find(filter).SortByDescending(o => o.CreatedAt).ToListAsync(ct);
+            var list = await db.Offices.Find(o => o.IsAvailable).SortByDescending(o => o.CreatedAt).ToListAsync(ct);
             return Results.Ok(list.Select(OfficeDto.From));
         });
 

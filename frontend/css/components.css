@@ -76,9 +76,6 @@
 .textarea { min-height: 96px; resize: vertical; }
 .input:focus, .select:focus, .textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent); }
 .input[disabled] { background: var(--surface-2); color: var(--text-muted); }
-.search { position: relative; }
-.search .icon { position: absolute; inset-inline-start: 14px; inset-block-start: 50%; transform: translateY(-50%); color: var(--text-faint); }
-.search .input { padding-inline-start: 42px; background: var(--surface-2); border-color: transparent; }
 .error-text { color: var(--danger-fg); font-size: .875rem; }
 .switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; min-height: var(--tap); }
 .switch input { width: 46px; height: 28px; appearance: none; background: var(--border); border-radius: 999px; position: relative; cursor: pointer; transition: background .15s; flex: none; }
@@ -151,11 +148,15 @@ dialog.sheet[open] { animation: sheet-up .22s ease-out; }
 .carousel-dots { position: absolute; inset-block-end: 10px; inset-inline: 0; display: flex; justify-content: center; gap: 6px; }
 .carousel-dots button { width: 8px; height: 8px; border-radius: 999px; border: 0; padding: 0; background: rgb(255 255 255 / .55); cursor: pointer; transition: width .2s; }
 .carousel-dots button[aria-current="true"] { width: 24px; background: #fff; }
-.banner { aspect-ratio: 16 / 7; max-height: 260px; width: 100%; }
+/* The banner box sets the size; track, slide and image fill it (without this the image keeps its natural height). */
+.banner { aspect-ratio: 16 / 7; max-height: 260px; width: 100%; overflow: hidden; }
+.banner .carousel-track, .banner .carousel-slide { height: 100%; }
 
 /* ---------- Welcome ---------- */
 .welcome { min-height: 100dvh; position: relative; color: #fff; background: #0f172a; display: flex; flex-direction: column; }
-.welcome .carousel, .welcome .carousel-track, .welcome .carousel-slide { position: absolute; inset: 0; height: 100%; }
+/* Carousel and track cover the screen; slides stay side by side in the track (absolute slides would stack). */
+.welcome .carousel, .welcome .carousel-track { position: absolute; inset: 0; height: 100%; }
+.welcome .carousel-slide { height: 100%; }
 .welcome .carousel-slide::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgb(15 23 42 / .95) 25%, rgb(15 23 42 / .2) 70%, rgb(15 23 42 / .5)); }
 .welcome .content { position: relative; z-index: 2; margin-top: auto; padding: 24px var(--gutter) calc(32px + var(--safe-bottom)); max-width: var(--content-max); margin-inline: auto; width: 100%; }
 .welcome .slide-text { min-height: 112px; }
