@@ -106,6 +106,7 @@ AuthEndpoints.Map(app);
 TermsEndpoints.Map(app);
 OfficeEndpoints.Map(app);
 BookingEndpoints.Map(app);
+ClientEndpoints.Map(app);
 AdminEndpoints.Map(app);
 SettingsEndpoints.Map(app);
 

@@ -122,6 +122,14 @@
 
 **8.5.** The Business will share information about the Renter (contact details, account, charges) only for the purpose of performing the rental, for payment providers and booking systems, and as required by law or a competent authority. The Renter agrees to receive operational messages related to bookings (including WhatsApp and SMS).
 
+**8.6. The Renter's client details.** The system lets the Renter keep a list of their own clients (name, phone numbers, email addresses and notes) and link a client to a booking.
+
+- This information is accessible to the Renter only, including the client name shown on the Renter's bookings. The Business, system administrators and other renters do not view or use it, except where required by law or for necessary technical maintenance, and then only to the minimum extent required.
+- The Renter owns this information and is solely responsible for it. The Renter must make sure they have a lawful basis to keep it, store only what is needed, and comply with the Protection of Privacy Law and the rules of their professional ethics. Medical or therapy information must not be stored in the system, including in notes fields.
+- In the future the system may allow sending clients invitations and booking reminders, for example via WhatsApp. Such messages will be sent to all contact details saved on the client's card. The Renter undertakes to mark consent only for a client who has given explicit consent, and to clear it if the client withdraws. A client may withdraw consent at any time.
+- The Renter may edit or delete any client at any time.
+- The Renter cannot delete their own account. Accounts are deleted only by a system administrator. When an account is deleted, all of its bookings and all of its client details are permanently deleted as well and cannot be restored.
+
 ## 9. Equipment, Keys and Access
 
 **9.1.** Access means (a code, key, token) are personal and may not be transferred or duplicated. Sharing an access code with Clients or a third party is prohibited.

@@ -15,10 +15,6 @@ public static class BookingEndpoints
             TimeProvider clock, CancellationToken ct) =>
         {
             var user = ctx.Me();
-            if (string.IsNullOrWhiteSpace(user.PhoneNumber)) return Api.Forbidden("profile_required");
-            var termsVersion = await TermsEndpoints.CurrentVersionAsync(db, ct);
-            if (termsVersion > 0 && (user.TermsAcceptedVersion ?? 0) < termsVersion) return Api.Forbidden("terms_required");
-
             if (!Api.IsObjectId(req.OfficeId)) return Api.NotFound("office_not_found");
             var office = await db.Offices.Find(o => o.Id == req.OfficeId).FirstOrDefaultAsync(ct);
             if (office is null || !office.IsAvailable) return Api.NotFound("office_not_found");
@@ -28,8 +24,15 @@ public static class BookingEndpoints
             err = rules.CheckUserWindow(range!);
             if (err is not null) return Api.BadRequest(err);
             if ((req.Notes?.Length ?? 0) > 1000) return Api.BadRequest("notes_too_long");
+            Client? client = null;
+            if (!string.IsNullOrWhiteSpace(req.ClientId))
+            {
+                client = await ClientEndpoints.FindOwnAsync(db, req.ClientId, user.Id, ct);
+                if (client is null) return Api.NotFound("client_not_found");
+            }
 
             var booking = NewBooking(office, range!, user.Id, user.FullName, req.Notes, user.Id, clock);
+            booking.ClientId = client?.Id;
             try
             {
                 await db.Bookings.InsertOneAsync(booking, cancellationToken: ct);
@@ -38,15 +41,40 @@ public static class BookingEndpoints
             {
                 return Api.Conflict("slot_taken", "One or more of the selected hours were just booked.");
             }
-            return Results.Created($"/api/bookings/{booking.Id}", BookingDto.From(booking, rules));
-        });
+            return Results.Created($"/api/bookings/{booking.Id}",
+                MyBookingDto.From(booking, rules, client is null ? null : ClientDto.FullName(client)));
+        }).AddEndpointFilter(async (ctx, next) =>
+            string.IsNullOrWhiteSpace(ctx.HttpContext.Me().PhoneNumber) ? Api.Forbidden("profile_required") : await next(ctx))
+          .RequireTerms();
 
         bookings.MapGet("/mine", async (HttpContext ctx, MongoContext db, BookingRules rules, CancellationToken ct) =>
         {
             var id = ctx.Me().Id;
             var list = await db.Bookings.Find(b => b.UserId == id).ToListAsync(ct);
-            return Results.Ok(Split(list, rules));
+            var names = await ClientNamesAsync(db, id, list.Select(b => b.ClientId), ct);
+            return Results.Ok(Split(list, rules, names));
         });
+
+        // The owner sets, changes or removes (clientId: null) the booking's client. Cancelled bookings too:
+        // it is only a label. Someone else's booking or client → 404.
+        bookings.MapPut("/{id}/client", async (string id, SetBookingClientRequest req, HttpContext ctx, MongoContext db,
+            BookingRules rules, CancellationToken ct) =>
+        {
+            if (!Api.IsObjectId(id)) return Api.NotFound("booking_not_found");
+            var me = ctx.Me().Id;
+            var b = await db.Bookings.Find(x => x.Id == id && x.UserId == me).FirstOrDefaultAsync(ct);
+            if (b is null) return Api.NotFound("booking_not_found");
+            Client? client = null;
+            if (!string.IsNullOrWhiteSpace(req.ClientId))
+            {
+                client = await ClientEndpoints.FindOwnAsync(db, req.ClientId, me, ct);
+                if (client is null) return Api.NotFound("client_not_found");
+            }
+            b.ClientId = client?.Id;
+            await db.Bookings.UpdateOneAsync(x => x.Id == id && x.UserId == me,
+                Builders<Booking>.Update.Set(x => x.ClientId, b.ClientId), cancellationToken: ct);
+            return Results.Ok(MyBookingDto.From(b, rules, client is null ? null : ClientDto.FullName(client)));
+        }).RequireTerms();
 
         bookings.MapPost("/{id}/cancel", async (string id, HttpContext ctx, MongoContext db, BookingRules rules,
             TimeProvider clock, CancellationToken ct) =>
@@ -207,15 +235,28 @@ public static class BookingEndpoints
         return upcoming.Concat(past);
     }
 
-    /// <summary>"upcoming" = confirmed and not yet ended; everything else is "past".</summary>
-    internal static object Split(List<Booking> list, BookingRules rules)
+    /// <summary>Names of the owner's clients linked to these bookings, in one query. The owner filter means a
+    /// clientId that is not (or no longer) the owner's simply gets no name.</summary>
+    private static async Task<Dictionary<string, string>> ClientNamesAsync(MongoContext db, string ownerId,
+        IEnumerable<string?> clientIds, CancellationToken ct)
     {
+        var ids = clientIds.OfType<string>().Distinct().ToList();
+        if (ids.Count == 0) return new();
+        var clients = await db.Clients.Find(c => ids.Contains(c.Id) && c.UserId == ownerId).ToListAsync(ct);
+        return clients.ToDictionary(c => c.Id, ClientDto.FullName);
+    }
+
+    /// <summary>"upcoming" = confirmed and not yet ended; everything else is "past".</summary>
+    private static object Split(List<Booking> list, BookingRules rules, Dictionary<string, string> clientNames)
+    {
+        MyBookingDto Dto(Booking b) =>
+            MyBookingDto.From(b, rules, b.ClientId is { } c && clientNames.TryGetValue(c, out var n) ? n : null);
         var upcoming = list.Where(b => b.Status == BookingStatus.Confirmed && !rules.HasEnded(b))
             .OrderBy(b => b.Date, StringComparer.Ordinal).ThenBy(b => b.StartTime, StringComparer.Ordinal)
-            .Select(b => BookingDto.From(b, rules)).ToList();
+            .Select(Dto).ToList();
         var past = list.Where(b => !(b.Status == BookingStatus.Confirmed && !rules.HasEnded(b)))
             .OrderByDescending(b => b.Date, StringComparer.Ordinal).ThenByDescending(b => b.StartTime, StringComparer.Ordinal)
-            .Select(b => BookingDto.From(b, rules)).ToList();
+            .Select(Dto).ToList();
         return new { upcoming, past };
     }
 }

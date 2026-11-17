@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using HourOffice.Api.Data;
 using HourOffice.Api.Services;
 using Microsoft.Extensions.Options;
@@ -6,7 +5,7 @@ using MongoDB.Driver;
 
 namespace HourOffice.Api.Endpoints;
 
-public static partial class AuthEndpoints
+public static class AuthEndpoints
 {
     public static void Map(WebApplication app)
     {
@@ -75,7 +74,7 @@ public static partial class AuthEndpoints
             var first = req.FirstName?.Trim() ?? "";
             var last = req.LastName?.Trim() ?? "";
             if (first.Length is 0 or > 60 || last.Length is 0 or > 60) return Api.BadRequest("name_required");
-            var phone = NormalizeIsraeliPhone(req.Phone);
+            var phone = Phone.NormalizeIsraeli(req.Phone);
             if (phone is null) return Api.BadRequest("invalid_phone", "Please enter a valid phone number");
             var user = ctx.Me();
             user.FirstName = first;
@@ -144,17 +143,4 @@ public static partial class AuthEndpoints
         var version = await TermsEndpoints.CurrentVersionAsync(db, ct);
         return Results.Ok(new AuthResponse(t.AccessToken, t.RefreshToken, t.AccessTokenExpiresAt, UserDto.From(user, version)));
     }
-
-    /// <summary>Accepts 05X-XXXXXXX, 5XXXXXXXX, +9725XXXXXXXX etc. Returns +972XXXXXXXXX or null.</summary>
-    public static string? NormalizeIsraeliPhone(string? raw)
-    {
-        if (string.IsNullOrWhiteSpace(raw)) return null;
-        var digits = NonDigits().Replace(raw, "");
-        if (digits.StartsWith("972")) digits = digits[3..];
-        digits = digits.TrimStart('0');
-        return digits.Length is 8 or 9 ? $"+972{digits}" : null;
-    }
-
-    [GeneratedRegex("[^0-9]")]
-    private static partial Regex NonDigits();
 }

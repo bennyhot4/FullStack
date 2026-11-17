@@ -67,11 +67,21 @@ const check = (cond, msg) => { if (!cond) errors.push(`[${step}] ${msg}`); };
 const admin = await newUser("he");
 await signIn(admin, "admin@example.com", "Owner Admin", { first: "מנהל", last: "ראשי", phone: "050-7654321" });
 step = "admin nav";
-check(await admin.locator(".bottom-nav a").count() === 6, "admin should see 6 nav items");
+check(await admin.locator(".bottom-nav a").count() === 4, "admin should see 4 nav items");
 check(await admin.evaluate(() => document.documentElement.dir) === "rtl", "Hebrew should be RTL");
 
+step = "admin menu";
+await admin.click('.bottom-nav a[href="/Admin"]');
+await waitPath(admin, /^\/Admin$/);
+await admin.waitForSelector(".admin-menu a");
+check(await admin.locator(".admin-menu a").count() === 4, "admin menu has 4 links");
+await shot(admin, "admin-menu");
+await noHorizontalScroll(admin, "Admin");
+
 step = "add offices";
-await admin.click('.bottom-nav a[href="/AdminOffices"]');
+await admin.click('.admin-menu a[href="/AdminOffices"]');
+await waitPath(admin, /\/AdminOffices/);
+check(await admin.locator('.bottom-nav a[href="/Admin"][aria-current="page"]').count() === 1, "Admin nav item active on admin pages");
 for (const [name, cap, rate, loc] of [["חדר טיפול 1", "2", "60", "תל אביב"], ["חדר קבוצות", "8", "120", "רמת גן"]]) {
   await admin.click("main .btn.block");
   const sheet = admin.locator("dialog.sheet");
@@ -110,7 +120,25 @@ check(await dana.locator(".office-card").count() === 2, "home shows 2 offices");
 check((await dana.textContent("h1")).includes("חדרי טיפול לפי שעה"), "home uses branding title");
 await shot(dana, "home");
 await noHorizontalScroll(dana, "Home");
-check(await dana.locator(".bottom-nav a").count() === 2, "user sees 2 nav items");
+check(await dana.locator(".bottom-nav a").count() === 3, "user sees 3 nav items");
+
+step = "add client";
+await dana.click('.bottom-nav a[href="/MyClients"]');
+await dana.waitForSelector("text=אין לקוחות עדיין");
+await dana.click("main .btn.block");
+const cs = dana.locator("dialog.sheet");
+await cs.locator("input").nth(0).fill("רות");
+await cs.locator("input").nth(1).fill("כהן");
+await cs.locator('input[type="tel"]').first().fill("050-9876543");
+await shot(dana, "client-form");
+await cs.locator('button[type="submit"]').click();
+await cs.waitFor({ state: "detached" });
+await dana.waitForSelector("main >> text=רות כהן");
+check((await dana.textContent("main")).includes("+972509876543"), "client phone stored in international format");
+await shot(dana, "my-clients");
+await noHorizontalScroll(dana, "MyClients");
+await dana.click('.bottom-nav a[href="/"]');
+await dana.waitForSelector(".office-card");
 
 step = "book";
 await dana.click(".office-card >> text=חדר טיפול 1 >> xpath=ancestor::article//a");
@@ -124,6 +152,8 @@ await slot(dana, "10:00").click();
 await slot(dana, "12:00").click();
 await dana.waitForSelector(".action-bar");
 check((await dana.textContent(".action-bar")).includes("₪180"), "3 hours x 60 = ₪180");
+await dana.locator("main select").selectOption({ label: "רות כהן" });
+check((await dana.textContent("main")).includes("ההערות גלויות למנהל"), "notes footnote shown");
 await shot(dana, "book-office");
 await noHorizontalScroll(dana, "BookOffice");
 await dana.click(".action-bar button");
@@ -132,8 +162,32 @@ await shot(dana, "booking-confirmed");
 await dana.click('a[href="/MyBookings"]');
 await dana.waitForSelector("article.card");
 check((await dana.textContent(".tabs")).includes("(1)"), "1 upcoming booking");
+check((await dana.textContent("article.card")).includes("רות כהן"), "booking shows the client name");
 await shot(dana, "my-bookings");
 await noHorizontalScroll(dana, "MyBookings");
+
+step = "filter by client";
+await dana.locator("main select").selectOption({ label: "רות כהן" });
+await dana.waitForFunction(() => location.search.includes("clientId="));
+check((await dana.textContent(".tabs")).includes("(1)"), "filtered: 1 upcoming booking");
+await dana.locator("main select").selectOption({ index: 0 });
+await dana.waitForFunction(() => !location.search.includes("clientId="));
+
+step = "bookings with this client link";
+await dana.click('.bottom-nav a[href="/MyClients"]');
+await dana.click("main >> text=רות כהן");
+await dana.locator("dialog.sheet >> text=הזמנות עם הלקוח").click();
+await waitPath(dana, /\/MyBookings/);
+await dana.waitForSelector("article.card");
+check(await dana.evaluate(() => location.search.includes("clientId=")), "link opens My bookings filtered");
+check((await dana.locator("main select").inputValue()) !== "", "client filter preselected");
+
+step = "delete client";
+await dana.click('.bottom-nav a[href="/MyClients"]');
+await dana.click("main >> text=רות כהן");
+await dana.locator("dialog.sheet .btn.danger-outline").click();
+await dana.locator("dialog.sheet .btn.danger").click();
+await dana.waitForSelector("text=אין לקוחות עדיין");
 
 // ---------- Second user (English): sees the booked hours ----------
 const noa = await newUser("en");
@@ -156,7 +210,10 @@ await shot(noa, "booked-slots-en");
 // ---------- Admin pages ----------
 step = "admin pages";
 for (const path of ["/AdminUsers", "/AdminBookings", "/AdminAnalytics"]) {
-  await admin.goto(`${WEB}${path}`);
+  // Through the Admin menu, the way an admin gets there now.
+  await admin.goto(`${WEB}/Admin`);
+  await admin.click(`.admin-menu a[href="${path}"]`);
+  await waitPath(admin, new RegExp(`^${path}$`));
   await admin.waitForSelector("main article, main .stat, main .empty");
   await shot(admin, path.slice(1));
   await noHorizontalScroll(admin, path);

@@ -11,7 +11,8 @@
   Netlify). Knows only `apiBaseUrl` from `config.js`; everything else comes from
   `GET /api/settings/public`.
 - **Database** — MongoDB (local `mongod` in development, Atlas in production). Collections:
-  `users`, `offices`, `bookings`, `siteSettings`, `terms`, `refreshTokens`. Indexes and the
+  `users`, `offices`, `bookings`, `siteSettings`, `terms`, `refreshTokens`, `clients`
+  (`bookings.clientId` links one optionally). Indexes and the
   initial terms are created by the API on startup.
 - **File storage** — local `uploads/` in development, S3-compatible (Cloudflare R2) in production.
 
@@ -21,6 +22,10 @@
 - Booking: the API computes the slot list and price, checks rules in `BookingRules`, and
   inserts; the partial unique index `uniq_confirmed_slot` (office + date + slot, confirmed only)
   rejects concurrent overlaps → `409 slot_taken`.
+- Clients: `/api/clients` (CRUD) and `PUT /api/bookings/{id}/client` filter by the signed-in
+  user inside every MongoDB query; someone else's id → 404. `GET /api/bookings/mine` adds
+  `clientId` + `clientName` (`MyBookingDto`); admin and shared routes use `BookingDto`, which has
+  no client fields. There is no admin client route.
 
 ## Auth
 - Google Identity Services ID token → `POST /api/auth/google` → user upserted by lower-cased
@@ -29,7 +34,8 @@
 - Every protected route group uses `RequireUser()` / `RequireAdmin()`, which reload the user
   from the DB on each request (roles are not trusted from the token).
 - Gates: profile (phone) and current terms version are required before booking (server) and
-  before most screens (client router).
+  before most screens (client router). The terms gate is the `RequireTerms()` filter, also on
+  `/api/clients` and `PUT /api/bookings/{id}/client`.
 
 ## External Dependencies
 - Google Identity Services (sign-in), MongoDB Atlas, Cloudflare R2, a container host
@@ -43,3 +49,4 @@
 ## Change Log
 - 2026-11-09 — API (ASP.NET Core 8 + MongoDB) and vanilla JS frontend built; local dev on Windows with a MongoDB service.
 - 2026-11-16 — Agent workflow files added (`AGENTS.md`, `.claude/`, `.doc/`, `.plan/`, `.orchestrate/`).
+- 2026-11-16 — Private client list (`clients` collection, `/api/clients`, `bookings.clientId`), `RequireTerms()` filter (plan 002).

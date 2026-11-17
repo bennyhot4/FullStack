@@ -18,6 +18,7 @@
 | site settings | Admin-managed key/value content: banners, branding title/description/logo, colors | config |
 | branding | The three colors + title, description, logo applied to the whole site at runtime | theme |
 | `currency` | ISO code stored on each office and booking (default `ILS`); display symbol by language | |
+| `client` | A person a user serves, kept in that user's private client list (name, 1–2 phones, 0–2 emails, consent flag); a booking may link one via `clientId`. Visible to its owner only, never to admins | customer, contact, patient |
 
 ## Naming Alignment
 - Keep this glossary aligned with naming decisions in `../.claude/rules/naming.md`.
