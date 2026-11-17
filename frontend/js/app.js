@@ -12,6 +12,8 @@ const routes = {
   "/Register": { load: () => import("./pages/register.js"), nav: false },
   // Readable without signing in (linked from the login page); signed-in users can accept it here.
   "/TermsOfUse": { load: () => import("./pages/terms.js"), nav: false, optionalAuth: true },
+  // Public (Google's OAuth consent screen links here), same access rules as /TermsOfUse.
+  "/PrivacyPolicy": { load: () => import("./pages/privacy.js"), nav: false, optionalAuth: true },
   "/BookOffice": { load: () => import("./pages/bookOffice.js"), nav: "Home" },
   "/MyBookings": { load: () => import("./pages/myBookings.js"), nav: "MyBookings" },
   "/MyClients": { load: () => import("./pages/myClients.js"), nav: "MyClients" },

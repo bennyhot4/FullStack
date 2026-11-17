@@ -38,6 +38,7 @@ const dict = {
     phoneNumber: "Phone Number", save: "Save & Continue", saving: "Saving...",
     termsAccept: "I Accept the Terms", termsAccepting: "Accepting...", termsNotSigned: "Not signed", termsSigned: "Signed",
     termsSignedOn: "Signed on", termsTitle: "Terms of Use", termsViewTerms: "View Terms of Use",
+    privacyTitle: "Privacy Policy", privacyViewPolicy: "Privacy Policy", privacyLastUpdated: "Last updated",
     termsReadAndAccept: "Read and accept to continue",
     // New in the rebuild
     welcomeTo: "Welcome to", signInToContinue: "Sign in to continue", signInWithGoogle: "Sign in with Google",
@@ -119,6 +120,7 @@ const dict = {
     lastName: "שם משפחה", phoneNumber: "מספר טלפון", save: "שמור והמשך", saving: "שומר...",
     termsAccept: "אני מאשר את התנאים", termsAccepting: "מאשר...", termsNotSigned: "לא נחתם", termsSigned: "נחתם",
     termsSignedOn: "נחתם ב", termsTitle: "תנאי שימוש", termsViewTerms: "צפייה בתנאי שימוש",
+    privacyTitle: "מדיניות פרטיות", privacyViewPolicy: "מדיניות פרטיות", privacyLastUpdated: "עודכן",
     termsReadAndAccept: "קראו את התקנון ואשרו כדי להמשיך",
     welcomeTo: "ברוכים הבאים ל", signInToContinue: "התחברו כדי להמשיך", signInWithGoogle: "התחברות עם Google",
     devLogin: "כניסת מפתחים", devLoginHint: "לפיתוח מקומי בלבד", name: "שם", signIn: "כניסה", logout: "התנתקות",

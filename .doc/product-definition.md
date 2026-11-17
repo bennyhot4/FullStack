@@ -26,6 +26,8 @@ hour, and rules could be bypassed by calling the API directly (`docs/PLAN.md` §
   recurring), analytics (week/month), site settings/branding, he/en with RTL, PWA.
   Private client list per user (`/MyClients`), an optional client on a booking, filtering
   My bookings by client, and an Admin menu (`/Admin`) behind one bottom-nav item (plan 002).
+  A public privacy policy (`/PrivacyPolicy`, he/en, static text in `frontend/js/content/privacy.js`)
+  linked from the login and terms pages (plan 007).
 - Out of scope: passwords, OTP, sending emails or messages of any kind, online payment,
   migrating data from Base44 (for now).
 
@@ -56,3 +58,5 @@ Each criterion must be provable by a test or a command. (Source: `docs/PLAN.md` 
   client name shows in My bookings, which can be filtered by client.
 - AC14 — Deleting a user also deletes their clients. Client data is stored only: no message is
   sent (§0 #4).
+- AC15 — `/PrivacyPolicy` opens signed out and signed in, in Hebrew (RTL) and English (LTR), and lists
+  every kind of personal data the app stores; a feature that adds personal data updates it.

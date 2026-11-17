@@ -44,7 +44,8 @@ export default async function login(el, { navigate, params }) {
     auth.googleClientId ? googleHost : null,
     auth.devLoginEnabled ? devLoginForm((email, name) => finish(api("/api/auth/dev-login", { method: "POST", body: { email, name }, auth: false }))) : null,
     errorEl,
-    h("a", { class: "small center", href: "/TermsOfUse", "data-link": "" }, t("termsViewTerms")));
+    h("a", { class: "small center", href: "/TermsOfUse", "data-link": "" }, t("termsViewTerms")),
+    h("a", { class: "small center", href: "/PrivacyPolicy", "data-link": "" }, t("privacyViewPolicy")));
 
   clear(el, h("div", { class: "top-actions" }, languageButton()),
     h("div", { class: "fullscreen-center" }, h("div", { style: { width: "100%", maxWidth: "400px" } }, card)));

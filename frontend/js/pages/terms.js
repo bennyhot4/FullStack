@@ -41,6 +41,8 @@ export default async function terms(el, { navigate }) {
     h("div", { class: "container", style: { paddingBlock: "16px" } },
       h("article", { class: "card pad", dir: getLang() === "he" ? "rtl" : "ltr" },
         h("p", { class: "xs faint", style: { marginBottom: "12px" } }, `${t("version")} ${doc.version} · ${fmtShortDate(doc.publishedAt)}`),
-        renderMarkdown(getLang() === "he" ? doc.contentHe : doc.contentEn)),
+        renderMarkdown(getLang() === "he" ? doc.contentHe : doc.contentEn),
+        h("p", { class: "small", style: { marginTop: "16px" } },
+          h("a", { href: "/PrivacyPolicy", "data-link": "" }, t("privacyViewPolicy")))),
       footer));
 }
