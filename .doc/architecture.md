@@ -51,7 +51,7 @@
   and a random password stored only in Secret Manager replace an IP allow-list.
 - Smoke check is `GET /api/settings/public`: Google's front end reserves paths ending in `z` on `*.run.app`.
 - Cost guard: ₪20/month budget alert, `max-instances 2`, Artifact Registry cleanup (keep newest 2).
-- Runbook (deploy, secret rotation, rollback): README "פריסה". Plan 004 will automate it.
+- Runbook (deploy, secret rotation, rollback): `.doc/operations.md` "פריסה". Plan 004 will automate it.
 
 ## External Dependencies
 - Google Identity Services (sign-in), MongoDB Atlas, Cloudflare R2, a container host
