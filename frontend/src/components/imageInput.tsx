@@ -10,13 +10,29 @@ export function ImageInput({ value = "", onChange, label }: { value?: string; on
   const [uploading, setUploading] = useState(false);
   const file = useRef<HTMLInputElement>(null);
 
+  const toSafeImageUrl = (raw: string) => {
+    const trimmed = raw.trim();
+    if (!trimmed) return "";
+    // Allow relative paths and only http(s) absolute URLs.
+    if (trimmed.startsWith("/")) return trimmed;
+    try {
+      const u = new URL(trimmed);
+      return u.protocol === "http:" || u.protocol === "https:" ? trimmed : "";
+    } catch {
+      return "";
+    }
+  };
+
   const set = (v: string) => {
     setCurrent(v);
     setText(v);
     onChange?.(v);
   };
   // Like the native "change" event: the URL is taken when the field is left (or Enter), not on every key.
-  const commit = () => { if (text.trim() !== current) set(text.trim()); };
+  const commit = () => {
+    const safe = toSafeImageUrl(text);
+    if (safe !== current) set(safe);
+  };
 
   const pick = async () => {
     const f = file.current?.files?.[0];
