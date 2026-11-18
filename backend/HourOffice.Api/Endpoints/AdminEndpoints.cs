@@ -37,11 +37,13 @@ public static class AdminEndpoints
             return Results.Created($"/api/admin/users/{user.Id}", UserDto.From(user, await TermsEndpoints.CurrentVersionAsync(db, ct)));
         });
 
-        users.MapPut("/{id}", async (string id, AdminUpdateUserRequest req, HttpContext ctx, MongoContext db, CancellationToken ct) =>
+        users.MapPut("/{id}", async (string id, AdminUpdateUserRequest req, HttpContext ctx, MongoContext db,
+            AdminClientSync sync, CancellationToken ct) =>
         {
             if (!Api.IsObjectId(id)) return Api.NotFound("user_not_found");
             var u = await db.Users.Find(x => x.Id == id).FirstOrDefaultAsync(ct);
             if (u is null) return Api.NotFound("user_not_found");
+            var wasAdmin = u.Role == Roles.Admin;
             if (req.Role is not null)
             {
                 if (!Roles.IsValid(req.Role)) return Api.BadRequest("invalid_role");
@@ -79,6 +81,8 @@ public static class AdminEndpoints
             }
             if (req.FullName is not null)
                 await db.Bookings.UpdateManyAsync(b => b.UserId == id, Builders<Booking>.Update.Set(b => b.BookerName, u.FullName), cancellationToken: ct);
+            // A new admin gets every registered user as a client. An invited one gets them on first sign-in.
+            if (!wasAdmin && u.Role == Roles.Admin) await sync.AddAllUsersToAdminAsync(u, ct);
             return Results.Ok(UserDto.From(u, await TermsEndpoints.CurrentVersionAsync(db, ct)));
         });
 
@@ -90,6 +94,15 @@ public static class AdminEndpoints
             if (res.DeletedCount == 0) return Api.NotFound("user_not_found");
             await db.Bookings.DeleteManyAsync(b => b.UserId == id, ct);
             await db.Clients.DeleteManyAsync(c => c.UserId == id, ct);
+            await db.DistributionLists.DeleteManyAsync(l => l.UserId == id, ct);
+            // The admins' copies of this user, and those copies in the admins' distribution lists.
+            var copies = await db.Clients.Find(c => c.SourceUserId == id).Project(c => c.Id).ToListAsync(ct);
+            if (copies.Count > 0)
+            {
+                await db.DistributionLists.UpdateManyAsync(Builders<DistributionList>.Filter.AnyIn(l => l.ClientIds, copies),
+                    Builders<DistributionList>.Update.PullAll(l => l.ClientIds, copies), cancellationToken: ct);
+                await db.Clients.DeleteManyAsync(c => c.SourceUserId == id, ct);
+            }
             await tokens.RevokeAllForUserAsync(id, ct);
             return Results.NoContent();
         });

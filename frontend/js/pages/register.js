@@ -11,6 +11,9 @@ export default function register(el, { navigate }) {
   const last = h("input", { class: "input", required: true, autocomplete: "family-name", value: u.lastName || "", maxlength: 60 });
   const email = h("input", { class: "input", type: "email", value: u.email, disabled: true });
   const phone = h("input", { class: "input", type: "tel", inputmode: "tel", autocomplete: "tel", required: true, placeholder: "050-1234567", dir: "ltr" });
+  // Plan 008, Q4: built but hidden for now (.is-hidden = display: none). Remove the class to show it.
+  const consent = h("input", { type: "checkbox", checked: !!u.marketingConsent });
+  const consentField = h("div", { class: "is-hidden" }, h("label", { class: "switch" }, consent, t("marketingConsent")));
   const err = h("p", { class: "error-text", role: "alert" });
   const submit = h("button", { class: "btn lg block", type: "submit" }, t("save"));
 
@@ -23,7 +26,9 @@ export default function register(el, { navigate }) {
       submit.disabled = true;
       submit.textContent = t("saving");
       try {
-        await put("/api/me", { firstName: first.value.trim(), lastName: last.value.trim(), phone: phone.value });
+        await put("/api/me", {
+          firstName: first.value.trim(), lastName: last.value.trim(), phone: phone.value, marketingConsent: consent.checked,
+        });
         await loadMe();
         navigate(store.me.needsTerms ? "/TermsOfUse" : "/", { replace: true });
       } catch (ex) {
@@ -41,6 +46,7 @@ export default function register(el, { navigate }) {
     h("div", { class: "grow" }, field(t("lastName"), last))),
   field(t("emailAddress"), email),
   field(t("phoneNumber"), phone),
+  consentField,
   err,
   submit);
 

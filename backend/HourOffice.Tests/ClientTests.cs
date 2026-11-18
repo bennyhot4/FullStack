@@ -110,7 +110,11 @@ public sealed class ClientTests(MongoFixture mongo) : IDisposable
         var user = await _app.LoginAsync("u@example.com");
         var id = await AddAsync(user, NewClient());
 
-        Assert.Empty(await ListAsync(admin));
+        // The admin's list holds only the admin's own copy of the user (plan 008), never the user's clients.
+        var adminList = await ListAsync(admin);
+        Assert.DoesNotContain(adminList, c => c.GetProperty("clientId").GetString() == id);
+        Assert.DoesNotContain(adminList, c => c.GetProperty("firstName").GetString() == "Ruth");
+        Assert.All(adminList, c => Assert.Equal(JsonValueKind.String, c.GetProperty("sourceUserId").ValueKind));
         Assert.Equal(HttpStatusCode.NotFound, (await admin.GetAsync($"/api/clients/{id}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await admin.GetAsync("/api/admin/clients")).StatusCode);
     }

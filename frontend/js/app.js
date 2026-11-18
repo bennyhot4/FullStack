@@ -17,6 +17,8 @@ const routes = {
   "/BookOffice": { load: () => import("./pages/bookOffice.js"), nav: "Home" },
   "/MyBookings": { load: () => import("./pages/myBookings.js"), nav: "MyBookings" },
   "/MyClients": { load: () => import("./pages/myClients.js"), nav: "MyClients" },
+  // Plan 008: the API is open to every user, but the site shows distribution lists to admins only for now.
+  "/DistributionLists": { load: () => import("./pages/distributionLists.js"), nav: "MyClients", admin: true },
   // The admin pages sit behind one "Admin" nav item; their own paths still work (bookmarks).
   "/Admin": { load: () => import("./pages/adminMenu.js"), nav: "Admin", admin: true },
   "/AdminOffices": { load: () => import("./pages/adminOffices.js"), nav: "Admin", admin: true },

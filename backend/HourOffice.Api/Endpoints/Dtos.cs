@@ -5,12 +5,12 @@ namespace HourOffice.Api.Endpoints;
 public sealed record UserDto(
     string Id, string Email, string FullName, string FirstName, string LastName, string? PhoneNumber,
     string? PictureUrl, string Role, string Status, bool TermsAccepted, int? TermsAcceptedVersion,
-    DateTime? TermsAcceptedAt, DateTime CreatedAt)
+    DateTime? TermsAcceptedAt, DateTime CreatedAt, bool MarketingConsent, DateTime? MarketingConsentAt)
 {
     public static UserDto From(User u, int currentTermsVersion) => new(
         u.Id, u.Email, u.FullName, u.FirstName, u.LastName, u.PhoneNumber, u.PictureUrl, u.Role, u.Status,
         u.TermsAcceptedVersion is { } v && v >= currentTermsVersion && currentTermsVersion > 0,
-        u.TermsAcceptedVersion, u.TermsAcceptedAt, u.CreatedAt);
+        u.TermsAcceptedVersion, u.TermsAcceptedAt, u.CreatedAt, u.MarketingConsent, u.MarketingConsentAt);
 }
 
 public sealed record OfficeDto(
@@ -46,12 +46,32 @@ public sealed record MyBookingDto(
 /// <summary>The client's id is returned as "clientId" (never "id").</summary>
 public sealed record ClientDto(
     string ClientId, string FirstName, string LastName, List<string> Phones, List<string> Emails, string Language,
-    bool WhatsAppConsent, DateTime? WhatsAppConsentAt, string Notes, DateTime CreatedAt, DateTime UpdatedAt)
+    bool WhatsAppConsent, DateTime? WhatsAppConsentAt, string Notes, DateTime CreatedAt, DateTime UpdatedAt,
+    string? SourceUserId)
 {
     public static ClientDto From(Client c) => new(c.Id, c.FirstName, c.LastName, c.Phones, c.Emails, c.Language,
-        c.WhatsAppConsent, c.WhatsAppConsentAt, c.Notes, c.CreatedAt, c.UpdatedAt);
+        c.WhatsAppConsent, c.WhatsAppConsentAt, c.Notes, c.CreatedAt, c.UpdatedAt, c.SourceUserId);
 
     public static string FullName(Client c) => $"{c.FirstName} {c.LastName}".Trim();
+}
+
+public sealed record DistributionListSummaryDto(string DistributionListId, string Name, string Description,
+    int ClientCount, DateTime UpdatedAt)
+{
+    public static DistributionListSummaryDto From(DistributionList l) =>
+        new(l.Id, l.Name, l.Description, l.ClientIds.Count, l.UpdatedAt);
+}
+
+public sealed record DistributionListMemberDto(string ClientId, string FullName, string? Phone);
+
+/// <summary>A list with its members; ids of clients that no longer exist are left out.</summary>
+public sealed record DistributionListDto(string DistributionListId, string Name, string Description,
+    List<string> ClientIds, List<DistributionListMemberDto> Members, DateTime CreatedAt, DateTime UpdatedAt)
+{
+    public static DistributionListDto From(DistributionList l, List<Client> members) => new(l.Id, l.Name, l.Description,
+        members.Select(c => c.Id).ToList(),
+        members.Select(c => new DistributionListMemberDto(c.Id, ClientDto.FullName(c), c.Phones.FirstOrDefault())).ToList(),
+        l.CreatedAt, l.UpdatedAt);
 }
 
 public sealed record AuthResponse(string AccessToken, string RefreshToken, DateTime AccessTokenExpiresAt, UserDto User);
@@ -60,7 +80,8 @@ public sealed record AuthResponse(string AccessToken, string RefreshToken, DateT
 public sealed record GoogleLoginRequest(string? Credential);
 public sealed record DevLoginRequest(string? Email, string? Name);
 public sealed record RefreshRequest(string? RefreshToken);
-public sealed record UpdateProfileRequest(string? FirstName, string? LastName, string? Phone);
+/// <summary>MarketingConsent missing (null) leaves the stored value unchanged.</summary>
+public sealed record UpdateProfileRequest(string? FirstName, string? LastName, string? Phone, bool? MarketingConsent = null);
 public sealed record AcceptTermsRequest(int Version);
 public sealed record OfficeRequest(string? Name, string? Description, string? ImageUrl, int Capacity, decimal HourlyRate,
     List<string>? Amenities, string? Location, bool IsAvailable);
@@ -70,6 +91,8 @@ public sealed record SetBookingClientRequest(string? ClientId);
 /// <summary>No UserId: the owner always comes from the signed-in user.</summary>
 public sealed record ClientRequest(string? FirstName, string? LastName, List<string?>? Phones, List<string?>? Emails,
     string? Language, bool WhatsAppConsent, string? Notes);
+/// <summary>No UserId: the owner always comes from the signed-in user.</summary>
+public sealed record DistributionListRequest(string? Name, string? Description, List<string?>? ClientIds);
 public sealed record AdminUpdateBookingRequest(string? OfficeId, string? BookerName, string? Date, string? StartTime,
     string? EndTime, string? Notes);
 public sealed record RecurringBookingRequest(string? OfficeId, string? UserId, string? BookerName, string? StartTime,

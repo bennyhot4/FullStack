@@ -12,13 +12,13 @@ public static class AuthEndpoints
         var auth = app.MapGroup("/api/auth").RequireRateLimiting("auth");
 
         auth.MapPost("/google", async (GoogleLoginRequest req, IGoogleTokenValidator google, MongoContext db,
-            TokenService tokens, IOptions<AuthOptions> opts, TimeProvider clock, CancellationToken ct) =>
+            TokenService tokens, IOptions<AuthOptions> opts, TimeProvider clock, AdminClientSync sync, CancellationToken ct) =>
         {
             if (string.IsNullOrWhiteSpace(req.Credential)) return Api.BadRequest("credential_required");
             var id = await google.ValidateAsync(req.Credential, ct);
             if (id is null) return Api.Error(401, "invalid_google_token");
             if (!id.EmailVerified) return Api.Error(401, "email_not_verified");
-            return await SignInAsync(db, tokens, opts.Value, clock, id.Email, id.Subject,
+            return await SignInAsync(db, tokens, opts.Value, clock, sync, id.Email, id.Subject,
                 id.GivenName, id.FamilyName, id.Name, id.Picture, ct);
         });
 
@@ -26,12 +26,12 @@ public static class AuthEndpoints
         if (!app.Environment.IsProduction() && app.Services.GetRequiredService<IOptions<AuthOptions>>().Value.DevLoginEnabled)
         {
             auth.MapPost("/dev-login", async (DevLoginRequest req, MongoContext db, TokenService tokens,
-                IOptions<AuthOptions> opts, TimeProvider clock, CancellationToken ct) =>
+                IOptions<AuthOptions> opts, TimeProvider clock, AdminClientSync sync, CancellationToken ct) =>
             {
                 if (string.IsNullOrWhiteSpace(req.Email) || !req.Email.Contains('@')) return Api.BadRequest("invalid_email");
                 var name = string.IsNullOrWhiteSpace(req.Name) ? req.Email.Split('@')[0] : req.Name.Trim();
                 var parts = name.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-                return await SignInAsync(db, tokens, opts.Value, clock, req.Email, null,
+                return await SignInAsync(db, tokens, opts.Value, clock, sync, req.Email, null,
                     parts.ElementAtOrDefault(0), parts.ElementAtOrDefault(1), name, null, ct);
             });
         }
@@ -69,7 +69,9 @@ public static class AuthEndpoints
             });
         });
 
-        me.MapPut("", async (UpdateProfileRequest req, HttpContext ctx, MongoContext db, CancellationToken ct) =>
+        // The first completion adds the user to every admin's client list; later changes update those copies.
+        me.MapPut("", async (UpdateProfileRequest req, HttpContext ctx, MongoContext db, TimeProvider clock,
+            AdminClientSync sync, CancellationToken ct) =>
         {
             var first = req.FirstName?.Trim() ?? "";
             var last = req.LastName?.Trim() ?? "";
@@ -77,11 +79,21 @@ public static class AuthEndpoints
             var phone = Phone.NormalizeIsraeli(req.Phone);
             if (phone is null) return Api.BadRequest("invalid_phone", "Please enter a valid phone number");
             var user = ctx.Me();
+            var hadProfile = !string.IsNullOrWhiteSpace(user.PhoneNumber);
             user.FirstName = first;
             user.LastName = last;
             user.FullName = $"{first} {last}";
             user.PhoneNumber = phone;
+            if (req.MarketingConsent is { } consent)
+            {
+                // The server records when consent was given; turning it off clears the time.
+                if (consent && !user.MarketingConsent) user.MarketingConsentAt = clock.GetUtcNow().UtcDateTime;
+                if (!consent) user.MarketingConsentAt = null;
+                user.MarketingConsent = consent;
+            }
             await db.Users.ReplaceOneAsync(u => u.Id == user.Id, user, cancellationToken: ct);
+            if (hadProfile) await sync.UpdateUserInAdminsAsync(user, ct);
+            else await sync.AddUserToAdminsAsync(user, ct);
             return Results.Ok(UserDto.From(user, await TermsEndpoints.CurrentVersionAsync(db, ct)));
         });
 
@@ -101,12 +113,13 @@ public static class AuthEndpoints
     }
 
     private static async Task<IResult> SignInAsync(MongoContext db, TokenService tokens, AuthOptions o, TimeProvider clock,
-        string email, string? googleSub, string? first, string? last, string? fullName, string? picture, CancellationToken ct)
+        AdminClientSync sync, string email, string? googleSub, string? first, string? last, string? fullName, string? picture, CancellationToken ct)
     {
         email = email.Trim().ToLowerInvariant();
         var now = clock.GetUtcNow().UtcDateTime;
         var isAdminEmail = o.AdminEmails.Any(a => string.Equals(a.Trim(), email, StringComparison.OrdinalIgnoreCase));
         var user = await db.Users.Find(u => u.Email == email).FirstOrDefaultAsync(ct);
+        var wasActiveAdmin = user is { Role: Roles.Admin, Status: "active" };
 
         if (user is null)
         {
@@ -138,6 +151,9 @@ public static class AuthEndpoints
             // Two first sign-ins raced; the other one created the record.
             user = await db.Users.Find(u => u.Email == email).FirstAsync(ct);
         }
+
+        // Promoted through Auth:AdminEmails, a new admin, or an invited admin's first sign-in.
+        if (!wasActiveAdmin && user.Role == Roles.Admin) await sync.AddAllUsersToAdminAsync(user, ct);
 
         var t = await tokens.IssueAsync(user, ct);
         var version = await TermsEndpoints.CurrentVersionAsync(db, ct);

@@ -1,6 +1,7 @@
 import { get } from "../api.js";
 import { t } from "../i18n.js";
 import { clientName, openClientSheet } from "../components/clients.js";
+import { isAdmin } from "../store.js";
 import { clear, empty, errorBox, h, icon, pageHeader, skeletons } from "../ui.js";
 
 // The signed-in user's private client list. Only its owner can see it (the API enforces this).
@@ -13,10 +14,19 @@ export default async function myClients(el) {
   const list = h("div", { class: "stack", style: { "--gap": "8px" } });
   const add = () => openClientSheet({ onSaved: load });
 
+  // Distribution lists are shown to admins only at this stage (plan 008, Q6).
+  // In the body, not the header, so the page title is not squeezed at 360px.
+  const addButton = h("button", { class: "btn block", type: "button", onclick: add }, icon("plus"), t("addClient"));
+  const actions = isAdmin()
+    ? h("div", { class: "row", style: { "--gap": "8px" } },
+      h("div", { style: { flex: "1 1 0", minWidth: "0" } }, addButton),
+      h("a", { class: "btn outline", style: { flex: "1 1 0", minWidth: "0" }, href: "/DistributionLists", "data-link": "" },
+        icon("list", "sm"), t("distributionLists")))
+    : addButton;
+
   clear(el, pageHeader({ title: t("myClients"), subtitle: t("clientsPrivateNote") }),
     h("div", { class: "container stack", style: { paddingBlock: "16px", "--gap": "12px" } },
-      h("button", { class: "btn block", type: "button", onclick: add }, icon("plus"), t("addClient")),
-      search, list));
+      actions, search, list));
 
   const matches = (c, q) => !q || [clientName(c), ...c.phones, ...c.emails].some((v) => v.toLowerCase().includes(q))
     // "050-123..." should find "+97250123..."
