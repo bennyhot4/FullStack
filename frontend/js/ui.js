@@ -1,4 +1,4 @@
-import { t } from "./i18n.js";
+import { hasKey, t } from "./i18n.js";
 
 /** Tiny DOM builder: h("button", { class: "btn", onclick }, "Text", child). Strings are always text, never HTML. */
 export function h(tag, attrs, ...children) {
@@ -68,6 +68,8 @@ const PATHS = {
   upload: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m14-7-5-5-5 5m5-5v12",
   palette: "M12 22a10 10 0 1 1 10-10c0 2.5-2 3-3.5 3H16a2 2 0 0 0-1.5 3.3A2 2 0 0 1 12 22ZM7.5 10.5h.01M12 7.5h.01M16.5 10.5h.01",
   image: "M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm3.5 7a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM21 15l-5-5L5 21",
+  client: "M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5 6a5 5 0 0 1 10 0",
+  grid: "M3 3h7v7H3Zm11 0h7v7h-7Zm0 11h7v7h-7ZM3 14h7v7H3Z",
 };
 
 export function icon(name, cls = "") {
@@ -152,6 +154,11 @@ export const spinner = () => h("div", { class: "fullscreen-center" }, h("div", {
 export const skeletons = (n = 3, height = 120) =>
   h("div", { class: "stack" }, Array.from({ length: n }, () => h("div", { class: "skeleton", style: { height: `${height}px` } })));
 export const empty = (iconName, text, action) => h("div", { class: "empty" }, icon(iconName), h("p", null, text), action);
+
+/** User-facing text for an ApiError: the translated text for its `code` when one exists, else the server message. */
+export function errorText(err) {
+  return err?.code && hasKey(err.code) ? t(err.code) : (err?.message || t("loadingFailed"));
+}
 
 export function errorBox(err, retry) {
   return h("div", { class: "empty" }, icon("alert"), h("p", null, err?.message || t("loadingFailed")),

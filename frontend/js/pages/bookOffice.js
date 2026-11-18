@@ -2,7 +2,8 @@ import { get, post } from "../api.js";
 import { t } from "../i18n.js";
 import { addDays, fmtDate, hoursLabel, money, store, todayInBusinessTz } from "../store.js";
 import { calendar } from "../components/calendar.js";
-import { amenityIcon, backButton, clear, empty, errorBox, h, icon, skeletons, toast } from "../ui.js";
+import { clientSelect } from "../components/clients.js";
+import { amenityIcon, backButton, clear, empty, errorBox, errorText, field, h, icon, skeletons, toast } from "../ui.js";
 
 const FALLBACK_IMG = "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format";
 const hourOf = (s) => parseInt(s.slice(0, 2), 10);
@@ -10,6 +11,7 @@ const hh = (n) => `${String(n).padStart(2, "0")}:00`;
 
 export default async function bookOffice(el, { params, navigate }) {
   const id = params.get("id");
+  const clientsLoading = get("/api/clients").catch(() => null); // in parallel with the office
   clear(el, h("div", { class: "container", style: { paddingBlock: "16px" } }, skeletons(1, 220), h("div", { style: { height: "12px" } }), skeletons(2, 140)));
 
   let office;
@@ -26,6 +28,10 @@ export default async function bookOffice(el, { params, navigate }) {
   const slotsHost = h("div");
   const summary = h("div");
   const notes = h("textarea", { class: "textarea", placeholder: t("anySpecialReq"), maxlength: 1000, rows: 3 });
+  // Optional client from the user's private list. If the list cannot be loaded the picker is simply left out.
+  const clients = await clientsLoading;
+  let clientId = "";
+  const clientPicker = clients ? clientSelect({ clients, onChange: (v) => { clientId = v; } }) : null;
 
   const header = h("div", { class: "office-card", style: { position: "relative" } },
     h("div", { class: "cover", style: { aspectRatio: "16 / 8", maxHeight: "300px" } }, h("img", { src: office.imageUrl || FALLBACK_IMG, alt: "" })),
@@ -49,7 +55,9 @@ export default async function bookOffice(el, { params, navigate }) {
       h("section", { class: "card pad stack" },
         h("div", null, h("h2", null, t("selectTime")), h("p", { class: "xs muted" }, t("selectTimeRange"))),
         slotsHost),
-      h("section", { class: "card pad stack" }, h("label", { class: "label", for: "notes" }, t("notesOptional")), Object.assign(notes, { id: "notes" })),
+      clientPicker ? h("section", { class: "card pad stack" }, field(t("client"), clientPicker)) : null,
+      h("section", { class: "card pad stack" }, h("label", { class: "label", for: "notes" }, `${t("notesOptional")} *`), Object.assign(notes, { id: "notes" }),
+        h("p", { class: "xs muted" }, t("notesVisibleToAdmin"))),
       summary));
 
   async function loadSlots() {
@@ -96,8 +104,10 @@ export default async function bookOffice(el, { params, navigate }) {
     drawSummary();
   }
 
+  // `summary` itself is the sticky bar: a sticky element only moves inside its parent, so it must not
+  // sit in a wrapper of its own height or it never sticks and ends up below the screen on long pages.
   function drawSummary() {
-    if (state.start === null) return clear(summary);
+    if (state.start === null) { summary.className = ""; return clear(summary); }
     const end = state.end ?? state.start + 1;
     const hours = end - state.start;
     const btn = h("button", { class: "btn lg block", type: "button" }, t("confirmBooking"));
@@ -105,24 +115,26 @@ export default async function bookOffice(el, { params, navigate }) {
       btn.disabled = true;
       btn.textContent = t("booking");
       try {
-        const b = await post("/api/bookings", { officeId: office.id, date: state.date, startTime: hh(state.start), endTime: hh(end), notes: notes.value });
+        const b = await post("/api/bookings", { officeId: office.id, date: state.date, startTime: hh(state.start), endTime: hh(end), notes: notes.value, clientId: clientId || null });
         success(b);
       } catch (e) {
         if (e.code === "slot_taken") { toast(t("slotTaken"), "error"); state.start = state.end = null; loadSlots(); return; }
         if (e.code === "terms_required") { toast(t("signedTermsRequired"), "error"); return navigate("/TermsOfUse"); }
         if (e.code === "profile_required") return navigate("/Register");
-        toast(e.message || t("loadingFailed"), "error");
+        toast(errorText(e), "error");
         btn.disabled = false;
         btn.textContent = t("confirmBooking");
       }
     });
-    clear(summary, h("div", { class: "action-bar stack", style: { "--gap": "10px" } },
+    summary.className = "action-bar stack";
+    summary.style.setProperty("--gap", "10px");
+    clear(summary,
       h("div", { class: "row between" },
         h("div", null,
           h("p", { class: "small bold" }, fmtDate(state.date, { weekday: "short", day: "numeric", month: "short" })),
           h("p", { class: "small muted", dir: "ltr", style: { textAlign: "start" } }, `${hh(state.start)} – ${hh(end)} · ${hoursLabel(hours, t)}`)),
         h("p", { class: "bold", style: { fontSize: "1.25rem" } }, money(hours * office.hourlyRate, office.currency))),
-      btn));
+      btn);
   }
 
   function success(b) {
@@ -131,6 +143,7 @@ export default async function bookOffice(el, { params, navigate }) {
       h("h1", null, t("bookingConfirmed")),
       h("div", { class: "muted" },
         h("p", { class: "bold", style: { color: "var(--text)" } }, b.officeName),
+        b.clientName ? h("p", null, `${t("client")}: ${b.clientName}`) : null,
         h("p", null, fmtDate(b.date)),
         h("p", { dir: "ltr" }, `${b.startTime} – ${b.endTime}`),
         h("p", { class: "bold" }, money(b.totalPrice, b.currency))),

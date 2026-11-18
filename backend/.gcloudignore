@@ -1,0 +1,10 @@
+# What `gcloud run deploy --source backend` uploads to Cloud Build (plan 006).
+# Same exclusions as .dockerignore: build output, local uploads and the test project
+# (HourOffice.Tests/bin alone is ~0.5 GB) never leave this machine.
+.gcloudignore
+**/bin/
+**/obj/
+**/uploads/
+HourOffice.Tests/
+*.user
+.vs/

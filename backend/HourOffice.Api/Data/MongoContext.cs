@@ -18,6 +18,7 @@ public sealed class MongoContext
     public IMongoCollection<SiteSetting> Settings => Database.GetCollection<SiteSetting>("siteSettings");
     public IMongoCollection<TermsDoc> Terms => Database.GetCollection<TermsDoc>("terms");
     public IMongoCollection<RefreshToken> RefreshTokens => Database.GetCollection<RefreshToken>("refreshTokens");
+    public IMongoCollection<Client> Clients => Database.GetCollection<Client>("clients");
 
     public MongoContext(IOptions<MongoOptions> options)
     {
@@ -67,6 +68,11 @@ public sealed class MongoContext
 
         await Terms.Indexes.CreateOneAsync(new CreateIndexModel<TermsDoc>(
             Builders<TermsDoc>.IndexKeys.Descending(t => t.Version), new CreateIndexOptions { Unique = true }), cancellationToken: ct);
+
+        // A user's client list, sorted by name. No uniqueness on phones/emails: duplicates are allowed.
+        await Clients.Indexes.CreateOneAsync(new CreateIndexModel<Client>(
+            Builders<Client>.IndexKeys.Ascending(c => c.UserId).Ascending(c => c.LastName).Ascending(c => c.FirstName)),
+            cancellationToken: ct);
 
         await RefreshTokens.Indexes.CreateManyAsync(new[]
         {

@@ -59,5 +59,21 @@ public static class Api
         return g;
     }
 
+    /// <summary>Endpoint filter: 403 terms_required when the signed-in user has not accepted the current
+    /// terms version. Add it after <see cref="RequireUser"/> (group filters run first).</summary>
+    public static TBuilder RequireTerms<TBuilder>(this TBuilder b) where TBuilder : IEndpointConventionBuilder
+    {
+        b.AddEndpointFilter(async (ctx, next) =>
+        {
+            var db = ctx.HttpContext.RequestServices.GetRequiredService<MongoContext>();
+            var user = await ctx.HttpContext.CurrentUserAsync(db);
+            if (user is null) return Error(401, "unauthorized");
+            var version = await TermsEndpoints.CurrentVersionAsync(db, ctx.HttpContext.RequestAborted);
+            if (version > 0 && (user.TermsAcceptedVersion ?? 0) < version) return Forbidden("terms_required");
+            return await next(ctx);
+        });
+        return b;
+    }
+
     public static User Me(this HttpContext ctx) => (User)ctx.Items["currentUser"]!;
 }

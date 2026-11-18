@@ -104,5 +104,5 @@ public sealed class AuthTests(MongoFixture mongo) : IDisposable
     [InlineData("12345", null)]
     [InlineData("", null)]
     public void Israeli_phone_numbers_are_normalized(string input, string? expected) =>
-        Assert.Equal(expected, AuthEndpoints.NormalizeIsraeliPhone(input));
+        Assert.Equal(expected, HourOffice.Api.Services.Phone.NormalizeIsraeli(input));
 }

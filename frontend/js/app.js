@@ -12,13 +12,18 @@ const routes = {
   "/Register": { load: () => import("./pages/register.js"), nav: false },
   // Readable without signing in (linked from the login page); signed-in users can accept it here.
   "/TermsOfUse": { load: () => import("./pages/terms.js"), nav: false, optionalAuth: true },
+  // Public (Google's OAuth consent screen links here), same access rules as /TermsOfUse.
+  "/PrivacyPolicy": { load: () => import("./pages/privacy.js"), nav: false, optionalAuth: true },
   "/BookOffice": { load: () => import("./pages/bookOffice.js"), nav: "Home" },
   "/MyBookings": { load: () => import("./pages/myBookings.js"), nav: "MyBookings" },
-  "/AdminOffices": { load: () => import("./pages/adminOffices.js"), nav: "AdminOffices", admin: true },
-  "/AdminUsers": { load: () => import("./pages/adminUsers.js"), nav: "AdminUsers", admin: true },
-  "/AdminAnalytics": { load: () => import("./pages/adminAnalytics.js"), nav: "AdminAnalytics", admin: true },
-  "/AdminBookings": { load: () => import("./pages/adminBookings.js"), nav: "AdminBookings", admin: true },
-  "/SiteSettingsPage": { load: () => import("./pages/siteSettings.js"), nav: "AdminOffices", admin: true },
+  "/MyClients": { load: () => import("./pages/myClients.js"), nav: "MyClients" },
+  // The admin pages sit behind one "Admin" nav item; their own paths still work (bookmarks).
+  "/Admin": { load: () => import("./pages/adminMenu.js"), nav: "Admin", admin: true },
+  "/AdminOffices": { load: () => import("./pages/adminOffices.js"), nav: "Admin", admin: true },
+  "/AdminUsers": { load: () => import("./pages/adminUsers.js"), nav: "Admin", admin: true },
+  "/AdminAnalytics": { load: () => import("./pages/adminAnalytics.js"), nav: "Admin", admin: true },
+  "/AdminBookings": { load: () => import("./pages/adminBookings.js"), nav: "Admin", admin: true },
+  "/SiteSettingsPage": { load: () => import("./pages/siteSettings.js"), nav: "Admin", admin: true },
 };
 
 const root = document.getElementById("app");
@@ -107,12 +112,8 @@ function bottomNav(active) {
   const items = [
     { page: "Home", href: "/", icon: "compass", label: t("explore") },
     { page: "MyBookings", href: "/MyBookings", icon: "calendar", label: t("myBookings") },
-    ...(isAdmin() ? [
-      { page: "AdminOffices", href: "/AdminOffices", icon: "building", label: t("offices") },
-      { page: "AdminUsers", href: "/AdminUsers", icon: "users", label: t("users") },
-      { page: "AdminAnalytics", href: "/AdminAnalytics", icon: "chart", label: t("analytics") },
-      { page: "AdminBookings", href: "/AdminBookings", icon: "list", label: t("bookings") },
-    ] : []),
+    { page: "MyClients", href: "/MyClients", icon: "client", label: t("myClients") },
+    ...(isAdmin() ? [{ page: "Admin", href: "/Admin", icon: "grid", label: t("adminMenu") }] : []),
   ];
   return h("nav", { class: "bottom-nav", "aria-label": "Main" },
     h("div", { class: "items" }, items.map((i) =>

@@ -1,0 +1,40 @@
+version: 2
+updates:
+  # Keeps the SHA-pinned actions current (Dependabot updates the SHA and the "# vX.Y.Z" comment).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: nuget
+    directory: /backend
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      nuget-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /e2e
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: docker
+    directory: /backend
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    # Stay on .NET 8 (net8.0 target) until a planned upgrade.
+    ignore:
+      - dependency-name: "mcr.microsoft.com/dotnet/*"
+        update-types: [version-update:semver-major]

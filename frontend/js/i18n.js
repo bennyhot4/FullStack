@@ -38,6 +38,7 @@ const dict = {
     phoneNumber: "Phone Number", save: "Save & Continue", saving: "Saving...",
     termsAccept: "I Accept the Terms", termsAccepting: "Accepting...", termsNotSigned: "Not signed", termsSigned: "Signed",
     termsSignedOn: "Signed on", termsTitle: "Terms of Use", termsViewTerms: "View Terms of Use",
+    privacyTitle: "Privacy Policy", privacyViewPolicy: "Privacy Policy", privacyLastUpdated: "Last updated",
     termsReadAndAccept: "Read and accept to continue",
     // New in the rebuild
     welcomeTo: "Welcome to", signInToContinue: "Sign in to continue", signInWithGoogle: "Sign in with Google",
@@ -62,6 +63,27 @@ const dict = {
     notesLabel: "Notes", openHours: "Opening hours", you: "You", amenitiesShort: "Amenities",
     noBannersYet: "No banners yet", signedTermsRequired: "Please sign the terms of use before booking.",
     perHour: "/hr", dayShort: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    // Clients (plan 002)
+    myClients: "My Clients", addClient: "Add Client", editClient: "Edit Client", deleteClient: "Delete Client?",
+    deleteClientConfirm: "Are you sure you want to delete", noClients: "No clients yet",
+    filterClients: "Search by name, phone or email", clientLanguage: "Message language", langHe: "Hebrew", langEn: "English",
+    whatsAppConsent: "The client agreed to receive messages",
+    whatsAppConsentHint: "Mark only with the client's explicit consent. No messages are sent yet.",
+    clientSaved: "Client saved", clientDeleted: "Client deleted", clientsPrivateNote: "Only you can see this list.",
+    addPhone: "+ Add phone", secondPhone: "Second phone", addEmail: "+ Add email", secondEmail: "Second email",
+    client: "Client", chooseClient: "Choose client", noClient: "No client", newClient: "+ New client",
+    changeClient: "Change client", allClients: "All clients", filterByClient: "Filter by client",
+    bookingsWithClient: "Bookings with this client",
+    notesVisibleToAdmin: "* Notes are visible to the admin. Pick the client above instead of writing client details here.",
+    adminMenu: "Admin", email: "Email", clientNotes: "Notes", clientNotesHint: "Do not store medical or therapy information.",
+    saveClient: "Save",
+    // Error texts keyed by the API error code (see errorText in ui.js)
+    client_name_required: "Please enter the client's first name.", phone_required: "Please enter at least one phone number.",
+    invalid_phone: "Please enter a valid phone number.", invalid_email: "Please enter a valid email address.",
+    invalid_language: "Please choose Hebrew or English.", too_many_phones: "Up to 2 phone numbers.",
+    too_many_emails: "Up to 2 email addresses.", notes_too_long: "The notes are too long.",
+    client_limit: "You have reached the limit of 1,000 clients.", client_not_found: "This client no longer exists.",
+    terms_required: "Please sign the terms of use first.",
   },
   he: {
     premiumOffices: "משרדים פרימיום", bookProfessional: "הזמינו משרדים מקצועיים לפי שעה", flexibleBooking: "הזמנה גמישה",
@@ -98,6 +120,7 @@ const dict = {
     lastName: "שם משפחה", phoneNumber: "מספר טלפון", save: "שמור והמשך", saving: "שומר...",
     termsAccept: "אני מאשר את התנאים", termsAccepting: "מאשר...", termsNotSigned: "לא נחתם", termsSigned: "נחתם",
     termsSignedOn: "נחתם ב", termsTitle: "תנאי שימוש", termsViewTerms: "צפייה בתנאי שימוש",
+    privacyTitle: "מדיניות פרטיות", privacyViewPolicy: "מדיניות פרטיות", privacyLastUpdated: "עודכן",
     termsReadAndAccept: "קראו את התקנון ואשרו כדי להמשיך",
     welcomeTo: "ברוכים הבאים ל", signInToContinue: "התחברו כדי להמשיך", signInWithGoogle: "התחברות עם Google",
     devLogin: "כניסת מפתחים", devLoginHint: "לפיתוח מקומי בלבד", name: "שם", signIn: "כניסה", logout: "התנתקות",
@@ -119,6 +142,26 @@ const dict = {
     chooseEndAfterStart: "בחרו שעת סיום אחרי שעת ההתחלה.", notesLabel: "הערות", openHours: "שעות פעילות", you: "את/ה",
     amenitiesShort: "שירותים", noBannersYet: "אין באנרים עדיין", signedTermsRequired: "יש לחתום על תנאי השימוש לפני הזמנה.",
     perHour: "לשעה", dayShort: ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"],
+    // Clients (plan 002)
+    myClients: "הלקוחות שלי", addClient: "הוספת לקוח", editClient: "עריכת לקוח", deleteClient: "למחוק את הלקוח?",
+    deleteClientConfirm: "האם אתם בטוחים שברצונכם למחוק את", noClients: "אין לקוחות עדיין",
+    filterClients: "חיפוש לפי שם, טלפון או דוא\"ל", clientLanguage: "שפת הודעות", langHe: "עברית", langEn: "אנגלית",
+    whatsAppConsent: "הלקוח הסכים לקבל הודעות",
+    whatsAppConsentHint: "סמנו רק בהסכמה מפורשת של הלקוח. כרגע לא נשלחות הודעות.",
+    clientSaved: "הלקוח נשמר", clientDeleted: "הלקוח נמחק", clientsPrivateNote: "רק את/ה רואה את הרשימה הזאת.",
+    addPhone: "+ הוספת טלפון", secondPhone: "טלפון נוסף", addEmail: "+ הוספת דוא\"ל", secondEmail: "דוא\"ל נוסף",
+    client: "לקוח", chooseClient: "בחירת לקוח", noClient: "ללא לקוח", newClient: "+ לקוח חדש",
+    changeClient: "שינוי לקוח", allClients: "כל הלקוחות", filterByClient: "סינון לפי לקוח",
+    bookingsWithClient: "הזמנות עם הלקוח",
+    notesVisibleToAdmin: "* ההערות גלויות למנהל. בחרו לקוח למעלה במקום לכתוב כאן את פרטי הלקוח.",
+    adminMenu: "ניהול", email: "דוא\"ל", clientNotes: "הערות", clientNotesHint: "אין לשמור כאן מידע רפואי או טיפולי.",
+    saveClient: "שמירה",
+    client_name_required: "יש להזין שם פרטי ללקוח.", phone_required: "יש להזין לפחות מספר טלפון אחד.",
+    invalid_phone: "מספר הטלפון אינו תקין.", invalid_email: "כתובת הדוא\"ל אינה תקינה.",
+    invalid_language: "יש לבחור עברית או אנגלית.", too_many_phones: "עד 2 מספרי טלפון.",
+    too_many_emails: "עד 2 כתובות דוא\"ל.", notes_too_long: "ההערות ארוכות מדי.",
+    client_limit: "הגעתם למגבלה של 1,000 לקוחות.", client_not_found: "הלקוח הזה כבר לא קיים.",
+    terms_required: "יש לחתום על תנאי השימוש תחילה.",
   },
 };
 
@@ -133,6 +176,9 @@ export const locale = () => (lang === "he" ? "he-IL" : "en-US");
 export function t(key) {
   return dict[lang][key] ?? dict.en[key] ?? key;
 }
+
+/** True when a text exists for this key (used to translate API error codes). */
+export const hasKey = (key) => typeof key === "string" && (key in dict[lang] || key in dict.en);
 
 export function applyDocumentLang() {
   document.documentElement.lang = lang;

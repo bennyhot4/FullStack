@@ -17,6 +17,8 @@ HourOffice: hourly office/room booking app, a rebuild of an app originally made 
 
 The README and plan are in Hebrew. UI is bilingual he/en with RTL support.
 
+`docs/PLAN.md` is the original master plan and is deliberately **not** updated when a feature changes; per-task plans in `.plan/NNN-*.md` record later decisions (e.g. `.plan/001` removed the home-page search and capacity filter that `docs/PLAN.md` still describes). When they disagree, the newest `.plan/` file and the code win.
+
 ## Commands
 
 Run the API on :5080 (Development: email-only dev login; `admin@example.com` becomes admin). Run it from `backend/HourOffice.Api` so it finds `appsettings.Development.json`:
@@ -27,9 +29,9 @@ Run the frontend on :5500 (static dev server with SPA fallback):
 ```bash
 node frontend/dev-server.mjs 5500
 ```
-`.claude/launch.json` defines both as `api` and `web` for the preview tool. Development expects MongoDB on `mongodb://localhost:27017`, database `houroffice`. On this machine it is installed as the `MongoDB` Windows service, and `mongosh` is available.
+`.claude/launch.json` defines both as `api` and `web` for the preview tool. Development expects MongoDB on `mongodb://localhost:27017`, database `houroffice`.
 
-Tests (in `backend/`): integration tests start their own temporary `mongod` from the EphemeralMongo7 NuGet package, so no MongoDB needs to be running:
+Tests (in `backend/`): integration tests start their own temporary `mongod` from the EphemeralMongo7 NuGet package, so no MongoDB needs to be running. `dotnet build`/`dotnet test` fail with a file-lock error (MSB3027) while the API is running from `bin/` — stop it first:
 ```bash
 cd backend && dotnet test
 cd backend && dotnet test --filter "FullyQualifiedName~BookingTests"          # one class
@@ -43,6 +45,13 @@ NODE_PATH=$(npm root -g) node e2e/smoke.mjs [screenshotDir]
 ```
 
 The projects target `net8.0`. A newer SDK builds them fine as long as the .NET 8 runtime is installed.
+
+### This machine (Windows)
+- MongoDB runs as the `MongoDB` Windows service; `mongosh` is at `C:\Users\benny\AppData\Local\Programs\mongosh\mongosh.exe`.
+- GitHub CLI is at `C:\Program Files\GitHub CLI\gh.exe` (not on the Bash PATH; signed in as `bennyhot4`).
+- Git has no global `user.name`/`user.email`; commit with `git -c user.name=... -c user.email=... commit` using the owner identity from the repo's existing commits (`git log --format='%an <%ae>' | sort -u`).
+- PRs target `claude/app-development-plan-imirl7` (the working main branch); feature work goes on `feat/` / `fix/` / `chore/` branches per `.claude/rules/git-workflow.md`.
+- The destructive-command hook matches the raw command text, so even a commit message containing a Mongo drop/delete-all call is blocked — reword it.
 
 ## Backend architecture (`backend/HourOffice.Api`)
 

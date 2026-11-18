@@ -32,3 +32,10 @@ playwright-report/
 # Dev-loop output (only the README is tracked)
 .orchestrate/*
 !.orchestrate/README.md
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example

@@ -72,10 +72,38 @@ public sealed class Booking
     public string Status { get; set; } = BookingStatus.Confirmed;
     public string Notes { get; set; } = "";
     [BsonRepresentation(BsonType.ObjectId)] public string? SeriesId { get; set; }
+    /// <summary>Optional link to one of the booking owner's clients. Only the owner ever sees it (never admins).</summary>
+    [BsonRepresentation(BsonType.ObjectId)] public string? ClientId { get; set; }
     public DateTime? CancelledAt { get; set; }
     [BsonRepresentation(BsonType.ObjectId)] public string? CancelledById { get; set; }
     [BsonRepresentation(BsonType.ObjectId)] public string CreatedById { get; set; } = "";
     public DateTime CreatedAt { get; set; }
+}
+
+/// <summary>A person a user serves, kept in that user's private client list. Visible to its owner only.</summary>
+public sealed class Client
+{
+    public const int MaxPerUser = 1000;
+    public const int MaxPhones = 2;
+    public const int MaxEmails = 2;
+    public const int MaxNotes = 500;
+    public static bool IsLanguage(string? l) => l is "he" or "en";
+
+    [BsonId, BsonRepresentation(BsonType.ObjectId)] public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
+    [BsonRepresentation(BsonType.ObjectId)] public string UserId { get; set; } = "";
+    public string FirstName { get; set; } = "";
+    public string LastName { get; set; } = "";
+    /// <summary>1–2 numbers in E.164 format.</summary>
+    public List<string> Phones { get; set; } = new();
+    /// <summary>0–2 lower-cased addresses.</summary>
+    public List<string> Emails { get; set; } = new();
+    public string Language { get; set; } = "he";
+    /// <summary>The client agreed to get messages (future feature); covers all of the card's phones and emails.</summary>
+    public bool WhatsAppConsent { get; set; }
+    public DateTime? WhatsAppConsentAt { get; set; }
+    public string Notes { get; set; } = "";
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }
 
 public sealed class SiteSetting

@@ -2,17 +2,30 @@ name: CI
 
 on:
   push:
+    branches: [master]
   pull_request:
+  workflow_dispatch:
+
+# Least privilege: every job only reads the repository unless it says otherwise.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: "8.0.x"
       - run: dotnet build -c Release
@@ -21,10 +34,72 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
+      # find covers every nesting level (a bare ** glob without globstar only matches one level).
       - name: Syntax check
-        run: for f in frontend/js/*.js frontend/js/**/*.js; do node --check "$f"; done
+        run: find frontend/js e2e -name '*.js' -o -name '*.mjs' | sort | xargs -n1 node --check
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build API image (no push)
+        run: docker build -t houroffice-api:ci backend
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: "8.0.x"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      # Playwright is pinned by e2e/package-lock.json; frontend/ itself stays dependency-free.
+      - name: Install Playwright
+        working-directory: e2e
+        run: |
+          npm ci --no-audit --no-fund
+          npx --no-install playwright install --with-deps chromium
+      - name: Build API
+        run: dotnet build -c Release backend/HourOffice.Api
+      - name: Start API (Development, dev login) and site
+        run: |
+          mkdir -p "$RUNNER_TEMP/logs"
+          (cd backend/HourOffice.Api && ASPNETCORE_ENVIRONMENT=Development nohup dotnet run -c Release --no-build --no-launch-profile --urls http://localhost:5080 > "$RUNNER_TEMP/logs/api.log" 2>&1 &)
+          nohup node frontend/dev-server.mjs 5500 > "$RUNNER_TEMP/logs/web.log" 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:5080/healthz > /dev/null && curl -fsS http://localhost:5500/ > /dev/null; then echo "ready"; exit 0; fi
+            sleep 2
+          done
+          echo "API or site did not start"; cat "$RUNNER_TEMP/logs/api.log" "$RUNNER_TEMP/logs/web.log"; exit 1
+      - name: Smoke test (phone, he + en)
+        run: node e2e/smoke.mjs "$RUNNER_TEMP/screenshots"
+      - name: Upload screenshots and logs
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-failure
+          path: |
+            ${{ runner.temp }}/screenshots
+            ${{ runner.temp }}/logs
+          retention-days: 7

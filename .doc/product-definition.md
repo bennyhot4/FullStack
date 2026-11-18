@@ -24,6 +24,10 @@ hour, and rules could be bypassed by calling the API directly (`docs/PLAN.md` §
   office browsing, hourly booking (08:00–22:00, up to 14 days ahead), my bookings +
   cancel, admin: offices + banners, users (invite, role, edit, delete), bookings (edit, cancel,
   recurring), analytics (week/month), site settings/branding, he/en with RTL, PWA.
+  Private client list per user (`/MyClients`), an optional client on a booking, filtering
+  My bookings by client, and an Admin menu (`/Admin`) behind one bottom-nav item (plan 002).
+  A public privacy policy (`/PrivacyPolicy`, he/en, static text in `frontend/js/content/privacy.js`)
+  linked from the login and terms pages (plan 007).
 - Out of scope: passwords, OTP, sending emails or messages of any kind, online payment,
   migrating data from Base44 (for now).
 
@@ -48,3 +52,11 @@ Each criterion must be provable by a test or a command. (Source: `docs/PLAN.md` 
 - AC10 — At 360px wide: no horizontal scroll, touch targets ≥ 44px, the bottom nav hides no
   content, RTL renders correctly.
 - AC11 — Lighthouse mobile: Performance ≥ 90, Accessibility ≥ 90.
+- AC12 — A user's clients are readable only by that user: another user or an admin gets 404
+  `client_not_found`, and no admin route or admin booking response contains client data.
+- AC13 — A booking can link one of the owner's own clients (another user's client → 404); the
+  client name shows in My bookings, which can be filtered by client.
+- AC14 — Deleting a user also deletes their clients. Client data is stored only: no message is
+  sent (§0 #4).
+- AC15 — `/PrivacyPolicy` opens signed out and signed in, in Hebrew (RTL) and English (LTR), and lists
+  every kind of personal data the app stores; a feature that adds personal data updates it.

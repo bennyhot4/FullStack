@@ -66,7 +66,7 @@ public static class AdminEndpoints
             if (req.PhoneNumber is not null)
             {
                 if (req.PhoneNumber.Trim().Length == 0) u.PhoneNumber = null;
-                else u.PhoneNumber = AuthEndpoints.NormalizeIsraeliPhone(req.PhoneNumber) ?? (string?)null;
+                else u.PhoneNumber = Phone.NormalizeIsraeli(req.PhoneNumber) ?? (string?)null;
                 if (req.PhoneNumber.Trim().Length > 0 && u.PhoneNumber is null) return Api.BadRequest("invalid_phone");
             }
             try
@@ -89,6 +89,7 @@ public static class AdminEndpoints
             var res = await db.Users.DeleteOneAsync(u => u.Id == id, ct);
             if (res.DeletedCount == 0) return Api.NotFound("user_not_found");
             await db.Bookings.DeleteManyAsync(b => b.UserId == id, ct);
+            await db.Clients.DeleteManyAsync(c => c.UserId == id, ct);
             await tokens.RevokeAllForUserAsync(id, ct);
             return Results.NoContent();
         });
