@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    # The working main branch (see .claude/rules/git-workflow.md); "master" is an old default branch.
+    branches: [claude/app-development-plan-imirl7]
   pull_request:
   workflow_dispatch:
 
