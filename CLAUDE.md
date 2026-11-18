@@ -15,7 +15,7 @@ HourOffice: hourly office/room booking app, a rebuild of an app originally made 
 - **Currency:** every office/booking stores an ISO `currency` (default `ILS`). The display symbol per language (`₪` he / `$` en) comes from server settings.
 - **Secrets:** the MongoDB Atlas connection string only ever lives in env vars (`Mongo__ConnectionString`), never in code or chat.
 
-The README and plan are in Hebrew. UI is bilingual he/en with RTL support.
+The README is a short, non-technical English overview. The plan and `.doc/operations.md` (local setup, env-var table, deployment runbook) are in Hebrew. UI is bilingual he/en with RTL support.
 
 `docs/PLAN.md` is the original master plan and is deliberately **not** updated when a feature changes; per-task plans in `.plan/NNN-*.md` record later decisions (e.g. `.plan/001` removed the home-page search and capacity filter that `docs/PLAN.md` still describes). When they disagree, the newest `.plan/` file and the code win.
 
@@ -61,7 +61,7 @@ The projects target `net8.0`. A newer SDK builds them fine as long as the .NET 8
 - **Mongo** (`Data/MongoContext.cs`): typed collections `users, offices, bookings, siteSettings, terms, refreshTokens`. A convention pack makes element names **camelCase** and ignores extra elements. Keep that in mind when querying with `mongosh` (`role`, `email`, ...). Models are in `Models.cs`, request/response DTOs in `Endpoints/Dtos.cs`.
 - **Booking rules** (open hours, max days ahead, time zone `Asia/Jerusalem`, recurring limits, slot ranges) all live in `Services/BookingRules.cs`. The server is the source of truth, not the browser. Time always comes from the injected `TimeProvider`; never use `DateTime.Now`/`UtcNow` directly, because tests swap in `FakeClock`.
 - **Storage:** `IFileStorage` is `LocalFileStorage` (served at `/uploads`) or `S3FileStorage` (Cloudflare R2), chosen by `Storage:Provider`.
-- All config is under `Mongo`, `Auth`, `Cors`, `Booking`, `Currency`, `Storage` (see `Options.cs` and `appsettings.json`). In deployment it is set as env vars with `__` (e.g. `Auth__AdminEmails__0`). The README has the full table.
+- All config is under `Mongo`, `Auth`, `Cors`, `Booking`, `Currency`, `Storage` (see `Options.cs` and `appsettings.json`). In deployment it is set as env vars with `__` (e.g. `Auth__AdminEmails__0`). `.doc/operations.md` has the full table.
 
 ## Tests (`backend/HourOffice.Tests`)
 

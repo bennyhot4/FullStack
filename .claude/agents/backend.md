@@ -42,7 +42,7 @@ List every endpoint, field, index and error code you must add or change.
 - Booking rules in `Services/BookingRules.cs`. Time only from `TimeProvider`.
 - Errors only via `Api.*` helpers — use the `error-handling` skill.
 - New settings go in an `Options.cs` class + `appsettings.json` with an empty/default value.
-  Secrets are never committed; document new env vars in the README table.
+  Secrets are never committed; document new env vars in the `.doc/operations.md` table.
 
 ### Step 3: Tests
 Per the `writing-tests` skill, for every endpoint you touched:

@@ -26,7 +26,7 @@
 - `e2e/` — Playwright smoke test at phone size.
 - `docs/PLAN.md` — the master development plan (Hebrew). Its section 0 decisions override
   everything else. `docs/` holds only this hand-written plan; generated output never goes there.
-- `.doc/` — product definition, architecture overview, glossary.
+- `.doc/` — product definition, architecture overview, glossary, operations runbook.
 - `.claude/rules/` — always-on constraints, imported below. Short by design.
 - `.claude/skills/` — procedural know-how, loaded on demand by task.
 - `.claude/agents/` — sub-agent definitions (orchestrator, frontend, backend, qa, security-reviewer).
