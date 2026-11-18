@@ -19,6 +19,7 @@ public sealed class MongoContext
     public IMongoCollection<TermsDoc> Terms => Database.GetCollection<TermsDoc>("terms");
     public IMongoCollection<RefreshToken> RefreshTokens => Database.GetCollection<RefreshToken>("refreshTokens");
     public IMongoCollection<Client> Clients => Database.GetCollection<Client>("clients");
+    public IMongoCollection<DistributionList> DistributionLists => Database.GetCollection<DistributionList>("distributionLists");
 
     public MongoContext(IOptions<MongoOptions> options)
     {
@@ -73,6 +74,18 @@ public sealed class MongoContext
         await Clients.Indexes.CreateOneAsync(new CreateIndexModel<Client>(
             Builders<Client>.IndexKeys.Ascending(c => c.UserId).Ascending(c => c.LastName).Ascending(c => c.FirstName)),
             cancellationToken: ct);
+        // One copy of a registered user per admin (see AdminClientSync). Only clients that have a sourceUserId.
+        await Clients.Indexes.CreateOneAsync(new CreateIndexModel<Client>(
+            Builders<Client>.IndexKeys.Ascending(c => c.UserId).Ascending(c => c.SourceUserId),
+            new CreateIndexOptions<Client>
+            {
+                Name = "uniq_owner_source_user",
+                Unique = true,
+                PartialFilterExpression = Builders<Client>.Filter.Type(c => c.SourceUserId, BsonType.ObjectId),
+            }), cancellationToken: ct);
+
+        await DistributionLists.Indexes.CreateOneAsync(new CreateIndexModel<DistributionList>(
+            Builders<DistributionList>.IndexKeys.Ascending(l => l.UserId).Ascending(l => l.Name)), cancellationToken: ct);
 
         await RefreshTokens.Indexes.CreateManyAsync(new[]
         {

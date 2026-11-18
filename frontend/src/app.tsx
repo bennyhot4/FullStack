@@ -39,6 +39,8 @@ const routes: Record<string, Route> = {
   "/BookOffice": { load: () => import("./pages/bookOffice"), nav: "Home" },
   "/MyBookings": { load: () => import("./pages/myBookings"), nav: "MyBookings" },
   "/MyClients": { load: () => import("./pages/myClients"), nav: "MyClients" },
+  // Plan 008: the API is open to every user, but the site shows distribution lists to admins only for now.
+  "/DistributionLists": { load: () => import("./pages/distributionLists"), nav: "MyClients", admin: true },
   // The admin pages sit behind one "Admin" nav item; their own paths still work (bookmarks).
   "/Admin": { load: () => import("./pages/adminMenu"), nav: "Admin", admin: true },
   "/AdminOffices": { load: () => import("./pages/adminOffices"), nav: "Admin", admin: true },

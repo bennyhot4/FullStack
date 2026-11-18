@@ -20,6 +20,8 @@ export interface UserDto {
   termsAcceptedVersion: number | null;
   termsAcceptedAt: string | null;
   createdAt: string;
+  marketingConsent: boolean;
+  marketingConsentAt: string | null;
 }
 
 /** GET /api/me */
@@ -106,6 +108,8 @@ export interface ClientDto {
   notes: string;
   createdAt: string;
   updatedAt: string;
+  /** Set when the client is the copy of a registered user (plan 008): their profile updates it. */
+  sourceUserId: string | null;
 }
 
 export interface ClientRequest {
@@ -140,6 +144,26 @@ export interface PublicSettings {
   currency: { base: string; displaySymbols: Record<string, string> };
   booking: { openHour: number; closeHour: number; maxDaysAhead: number; timeZone: string };
   auth: { googleClientId: string | null; devLoginEnabled: boolean; allowOpenSignup: boolean };
+}
+
+/** GET /api/distribution-lists (plan 008) */
+export interface DistributionListSummary {
+  distributionListId: string;
+  name: string;
+  description: string;
+  clientCount: number;
+  updatedAt: string;
+}
+
+/** GET /api/distribution-lists/{id} */
+export interface DistributionList {
+  distributionListId: string;
+  name: string;
+  description: string;
+  clientIds: string[];
+  members: { clientId: string; fullName: string; phone: string | null }[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 /** GET /api/terms/current */

@@ -85,6 +85,21 @@ const en = {
   too_many_emails: "Up to 2 email addresses.", notes_too_long: "The notes are too long.",
   client_limit: "You have reached the limit of 1,000 clients.", client_not_found: "This client no longer exists.",
   terms_required: "Please sign the terms of use first.",
+  // Distribution lists + registered users as clients (plan 008)
+  distributionLists: "Distribution Lists", distributionList: "Distribution list",
+  newDistributionList: "New list", editDistributionList: "Edit list", deleteDistributionList: "Delete list?",
+  deleteDistributionListConfirm: "The clients stay in your client list. Delete the list",
+  noDistributionLists: "No distribution lists yet", distributionListsNote: "Group your clients for future updates. Only you can see your lists.",
+  listName: "List name", listDescription: "Description (optional)", listMembers: "Clients in the list",
+  selectAllShown: "Select all shown", clearSelection: "Clear", clientsCount: "clients", selectedCount: "selected",
+  distributionListSaved: "List saved", distributionListDeleted: "List deleted",
+  registeredUser: "Registered user of the site",
+  marketingConsent: "I agree to receive updates and offers",
+  list_name_required: "Please enter a list name (up to 60 characters).",
+  list_description_too_long: "The description is too long.",
+  too_many_list_clients: "A list can hold up to 1,000 clients.",
+  list_limit: "You have reached the limit of 100 lists.",
+  distribution_list_not_found: "This list no longer exists.",
 };
 
 const he: typeof en = {
@@ -164,6 +179,21 @@ const he: typeof en = {
   too_many_emails: "עד 2 כתובות דוא\"ל.", notes_too_long: "ההערות ארוכות מדי.",
   client_limit: "הגעתם למגבלה של 1,000 לקוחות.", client_not_found: "הלקוח הזה כבר לא קיים.",
   terms_required: "יש לחתום על תנאי השימוש תחילה.",
+  // Distribution lists + registered users as clients (plan 008)
+  distributionLists: "רשימות תפוצה", distributionList: "רשימת תפוצה",
+  newDistributionList: "רשימה חדשה", editDistributionList: "עריכת רשימה", deleteDistributionList: "למחוק את הרשימה?",
+  deleteDistributionListConfirm: "הלקוחות יישארו ברשימת הלקוחות שלך. למחוק את הרשימה",
+  noDistributionLists: "אין רשימות תפוצה עדיין", distributionListsNote: "קבצו לקוחות לעדכונים עתידיים. רק את/ה רואה את הרשימות.",
+  listName: "שם הרשימה", listDescription: "תיאור (לא חובה)", listMembers: "לקוחות ברשימה",
+  selectAllShown: "בחירת כל המוצגים", clearSelection: "ניקוי", clientsCount: "לקוחות", selectedCount: "נבחרו",
+  distributionListSaved: "הרשימה נשמרה", distributionListDeleted: "הרשימה נמחקה",
+  registeredUser: "משתמש רשום באתר",
+  marketingConsent: "אני מסכים/ה לקבל עדכונים והצעות",
+  list_name_required: "יש להזין שם לרשימה (עד 60 תווים).",
+  list_description_too_long: "התיאור ארוך מדי.",
+  too_many_list_clients: "רשימה יכולה להכיל עד 1,000 לקוחות.",
+  list_limit: "הגעתם למגבלה של 100 רשימות.",
+  distribution_list_not_found: "הרשימה הזאת כבר לא קיימת.",
 };
 
 export type Lang = "en" | "he";

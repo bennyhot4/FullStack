@@ -12,7 +12,7 @@
   `GET /api/settings/public`.
 - **Database** — MongoDB (local `mongod` in development, Atlas in production). Collections:
   `users`, `offices`, `bookings`, `siteSettings`, `terms`, `refreshTokens`, `clients`
-  (`bookings.clientId` links one optionally). Indexes and the
+  (`bookings.clientId` links one optionally), `distributionLists`. Indexes and the
   initial terms are created by the API on startup.
 - **File storage** — local `uploads/` in development, S3-compatible (Cloudflare R2) in production.
 
@@ -26,6 +26,14 @@
   user inside every MongoDB query; someone else's id → 404. `GET /api/bookings/mine` adds
   `clientId` + `clientName` (`MyBookingDto`); admin and shared routes use `BookingDto`, which has
   no client fields. There is no admin client route.
+- Admins' copies of users (`Services/AdminClientSync.cs`, plan 008): the first `PUT /api/me` with a
+  phone inserts a `clients` document per active admin with `sourceUserId` (unique partial index
+  `uniq_owner_source_user` on `userId + sourceUserId`); later profile changes `UpdateMany` those copies.
+  Becoming an admin (role change, `Auth:AdminEmails`, invited admin's first sign-in) adds every user
+  to that admin's list. A one-time startup pass (marker `admin_clients_filled` in `siteSettings`)
+  fills existing admins. Deleting a user deletes the copies and pulls them from distribution lists.
+- Distribution lists: `/api/distribution-lists` (CRUD, `RequireTerms()`), owner filter inside every
+  query, members must be the owner's clients; deleting a client pulls it from the owner's lists.
 
 ## Auth
 - Google Identity Services ID token → `POST /api/auth/google` → user upserted by lower-cased
@@ -51,7 +59,7 @@
   and a random password stored only in Secret Manager replace an IP allow-list.
 - Smoke check is `GET /api/settings/public`: Google's front end reserves paths ending in `z` on `*.run.app`.
 - Cost guard: ₪20/month budget alert, `max-instances 2`, Artifact Registry cleanup (keep newest 2).
-- Runbook (deploy, secret rotation, rollback): README "פריסה". Plan 004 will automate it.
+- Runbook (deploy, secret rotation, rollback): `.doc/operations.md` "פריסה". Plan 004 will automate it.
 
 ## External Dependencies
 - Google Identity Services (sign-in), MongoDB Atlas, Cloudflare R2, a container host
@@ -67,3 +75,4 @@
 - 2026-11-16 — Agent workflow files added (`AGENTS.md`, `.claude/`, `.doc/`, `.plan/`, `.orchestrate/`).
 - 2026-11-16 — Private client list (`clients` collection, `/api/clients`, `bookings.clientId`), `RequireTerms()` filter (plan 002).
 - 2026-11-17 — Public `/PrivacyPolicy` page (plan 007); first production go-live on Cloud Run + Cloudflare Pages + R2 + Atlas M0 (plan 006).
+- 2026-11-18 — Users copied into admins' client lists (`clients.sourceUserId`, `users.marketingConsent`), `distributionLists` collection and `/api/distribution-lists` (plan 008).

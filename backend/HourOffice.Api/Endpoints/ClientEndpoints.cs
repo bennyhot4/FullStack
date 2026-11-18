@@ -57,13 +57,16 @@ public static partial class ClientEndpoints
             return res.MatchedCount == 0 ? Api.NotFound("client_not_found") : Results.Ok(ClientDto.From(client));
         });
 
-        // Bookings linked to a deleted client keep their clientId; they just show no name.
+        // Bookings linked to a deleted client keep their clientId; they just show no name. It leaves the owner's lists.
         clients.MapDelete("/{id}", async (string id, HttpContext ctx, MongoContext db, CancellationToken ct) =>
         {
             if (!Api.IsObjectId(id)) return Api.NotFound("client_not_found");
             var me = ctx.Me().Id;
             var res = await db.Clients.DeleteOneAsync(c => c.Id == id && c.UserId == me, ct);
-            return res.DeletedCount == 0 ? Api.NotFound("client_not_found") : Results.NoContent();
+            if (res.DeletedCount == 0) return Api.NotFound("client_not_found");
+            await db.DistributionLists.UpdateManyAsync(l => l.UserId == me,
+                Builders<DistributionList>.Update.Pull(l => l.ClientIds, id), cancellationToken: ct);
+            return Results.NoContent();
         });
     }
 

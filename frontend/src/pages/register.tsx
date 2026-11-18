@@ -12,6 +12,7 @@ export default function Register() {
   const [first, setFirst] = useState(u.firstName || "");
   const [last, setLast] = useState(u.lastName || "");
   const [phone, setPhone] = useState("");
+  const [consent, setConsent] = useState(!!u.marketingConsent);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -23,7 +24,7 @@ export default function Register() {
     if (phone.replace(/\D/g, "").length < 9) { setError(t("invalidPhone")); return; }
     setSaving(true);
     try {
-      await put("/api/me", { firstName: first.trim(), lastName: last.trim(), phone });
+      await put("/api/me", { firstName: first.trim(), lastName: last.trim(), phone, marketingConsent: consent });
       const updated = await loadMe();
       navigate(updated.needsTerms ? "/TermsOfUse" : "/", { replace: true });
     } catch (ex) {
@@ -55,6 +56,10 @@ export default function Register() {
             <input className="input" type="tel" inputMode="tel" autoComplete="tel" required placeholder="050-1234567" dir="ltr"
               autoFocus={!!u.firstName} value={phone} onChange={(e) => setPhone(e.target.value)} />
           </Field>
+          {/* Plan 008, Q4: built but hidden for now (.is-hidden = display: none). Remove the class to show it. */}
+          <div className="is-hidden">
+            <label className="switch"><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />{t("marketingConsent")}</label>
+          </div>
           <p className="error-text" role="alert">{error}</p>
           <button className="btn lg block" type="submit" disabled={saving}>{saving ? t("saving") : t("save")}</button>
         </form>

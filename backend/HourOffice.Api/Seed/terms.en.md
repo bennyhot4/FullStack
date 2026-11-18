@@ -130,6 +130,8 @@
 - The Renter may edit or delete any client at any time.
 - The Renter cannot delete their own account. Accounts are deleted only by a system administrator. When an account is deleted, all of its bookings and all of its client details are permanently deleted as well and cannot be restored.
 
+**8.7. The Renter's details in the Business's client list.** When the Renter completes registration, their name, phone number and email address are also saved in the client list of the system administrators, to manage the relationship with the Renter and to send updates in the future, and are updated when the Renter updates their details. Marketing messages will be sent only to a Renter who has given explicit consent, and the Renter may withdraw consent at any time. When the Renter's account is deleted, these details are also deleted from the administrators' client lists.
+
 ## 9. Equipment, Keys and Access
 
 **9.1.** Access means (a code, key, token) are personal and may not be transferred or duplicated. Sharing an access code with Clients or a third party is prohibited.

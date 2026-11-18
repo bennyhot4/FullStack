@@ -162,8 +162,9 @@ plan 004's deploy job are still open. Decisions taken while implementing:
 - `he` in `src/i18n.ts` is typed as `typeof en`, so a missing translation fails the type check.
 - Measured: `dist/` 30 files, 349 KB raw / 115 KB gzip; JS 108 KB gzip in total, of which the initial
   chunk is 83 KB gzip; page chunks 0.4–3.1 KB gzip. `node_modules` 118 MB (never deployed).
-- Not in this branch: the plan 008 distribution-list UI and other work that was uncommitted on
-  `feat/distribution-list` at the time. It must be ported to React when either branch lands second.
+- Plan 008 (merged to the trunk while this was open) is ported: `/DistributionLists` page, the
+  "registered user" line in the client sheet, the admin-only entry on `/MyClients`, the hidden marketing
+  consent on `/Register`, its i18n keys and types. Its e2e steps pass against the React build.
 
 ## Validation
 - [ ] `cd frontend && npm ci && npm run build` succeeds; `npm run typecheck` and `npm run lint` have

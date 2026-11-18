@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { get } from "../api";
 import { t } from "../i18n";
+import { Link } from "../router";
+import { isAdmin } from "../store";
 import type { ClientDto } from "../types/api";
 import { useAsync } from "../useAsync";
 import { clientName, openClientSheet } from "../components/clients";
@@ -53,7 +55,18 @@ export default function MyClients() {
     <>
       <PageHeader title={t("myClients")} subtitle={t("clientsPrivateNote")} />
       <div className="container stack" style={{ paddingBlock: "16px", "--gap": "12px" }}>
-        <button className="btn block" type="button" onClick={add}><Icon name="plus" />{t("addClient")}</button>
+        {/* Distribution lists are shown to admins only at this stage (plan 008, Q6). In the body, not the
+            header, so the page title is not squeezed at 360px. */}
+        {isAdmin() ? (
+          <div className="row" style={{ "--gap": "8px" }}>
+            <div style={{ flex: "1 1 0", minWidth: "0" }}>
+              <button className="btn block" type="button" onClick={add}><Icon name="plus" />{t("addClient")}</button>
+            </div>
+            <Link className="btn outline" style={{ flex: "1 1 0", minWidth: "0" }} href="/DistributionLists">
+              <Icon name="list" className="sm" />{t("distributionLists")}
+            </Link>
+          </div>
+        ) : <button className="btn block" type="button" onClick={add}><Icon name="plus" />{t("addClient")}</button>}
         <input className="input" type="search" placeholder={t("filterClients")} aria-label={t("filterClients")}
           value={search} onChange={(e) => setSearch(e.target.value)} />
         <div className="stack" style={{ "--gap": "8px" }}>{list}</div>

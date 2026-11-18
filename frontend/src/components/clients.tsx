@@ -5,7 +5,7 @@ import { del, post, put } from "../api";
 import { t, type TranslationKey } from "../i18n";
 import { Link } from "../router";
 import type { ClientDto, ClientRequest } from "../types/api";
-import { Field, confirmSheet, errorText, openSheet, toast } from "../ui";
+import { Field, Icon, confirmSheet, errorText, openSheet, toast } from "../ui";
 
 export const clientName = (c: Pick<ClientDto, "firstName" | "lastName">) => `${c.firstName} ${c.lastName}`.trim();
 
@@ -80,6 +80,8 @@ function ClientForm({ client, onSaved, close, bookingsLink }: {
           <input className="input" maxLength={60} autoComplete="off" value={lastName} onChange={(e) => setLastName(e.target.value)} />
         </Field></div>
       </div>
+      {/* A copy of a registered user (plan 008): their own profile changes update the name, first phone and email. */}
+      {client?.sourceUserId ? <p className="row small muted" style={{ "--gap": "6px" }}><Icon name="user" className="sm" />{t("registeredUser")}</p> : null}
       <Pair type="tel" values={phones} onChange={setPhones} labels={["phoneNumber", "secondPhone", "addPhone"]}
         inputProps={{ dir: "ltr", inputMode: "tel", autoComplete: "off", maxLength: 30 }} />
       <Pair type="email" values={emails} onChange={setEmails} labels={["email", "secondEmail", "addEmail"]}
