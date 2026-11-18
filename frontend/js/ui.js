@@ -1,0 +1,183 @@
+import { t } from "./i18n.js";
+
+/** Tiny DOM builder: h("button", { class: "btn", onclick }, "Text", child). Strings are always text, never HTML. */
+export function h(tag, attrs, ...children) {
+  const el = document.createElement(tag);
+  if (attrs) {
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v === undefined || v === null || v === false) continue;
+      if (k.startsWith("on") && typeof v === "function") el.addEventListener(k.slice(2).toLowerCase(), v);
+      else if (k === "class") el.className = v;
+      else if (k === "style" && typeof v === "object") {
+        for (const [sk, sv] of Object.entries(v)) sk.startsWith("--") ? el.style.setProperty(sk, sv) : (el.style[sk] = sv);
+      }
+      else if (k === "dataset") Object.assign(el.dataset, v);
+      else if (k in el && typeof v !== "string") el[k] = v;
+      else el.setAttribute(k, v === true ? "" : String(v));
+    }
+  }
+  append(el, children);
+  return el;
+}
+
+function append(el, children) {
+  for (const c of children.flat(Infinity)) {
+    if (c === null || c === undefined || c === false) continue;
+    el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  }
+}
+
+export function clear(el, ...children) { el.replaceChildren(); append(el, children); return el; }
+
+// ---------- Icons (inline SVG, stroke = currentColor) ----------
+const PATHS = {
+  search: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm10 2-4.35-4.35",
+  compass: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Zm4.24-14.24-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12Z",
+  calendar: "M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z",
+  building: "M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Zm-2 0h16M10 6h4m-4 4h4m-4 4h4m-4 4h4",
+  users: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
+  user: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m8-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
+  chart: "M3 3v18h18M7 16v-5m5 5V8m5 8v-8",
+  list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
+  clock: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Zm0-16v6l4 2",
+  pin: "M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z",
+  logout: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9",
+  globe: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20Z",
+  arrowLeft: "M19 12H5m7 7-7-7 7-7",
+  arrowRight: "M5 12h14m-7-7 7 7-7 7",
+  chevronLeft: "m15 18-6-6 6-6",
+  chevronRight: "m9 18 6-6-6-6",
+  plus: "M12 5v14M5 12h14",
+  edit: "M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z",
+  trash: "M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2",
+  x: "M18 6 6 18M6 6l12 12",
+  check: "M20 6 9 17l-5-5",
+  checkCircle: "M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3",
+  alert: "M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z",
+  shield: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z",
+  file: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Zm0 0v6h6M16 13H8m8 4H8m2-8H8",
+  settings: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7.4-3a7.4 7.4 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7.3 7.3 0 0 0-2-1.2L14.5 3h-5l-.4 2.6a7.3 7.3 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7.4 7.4 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7.3 7.3 0 0 0 2 1.2l.4 2.6h5l.4-2.6a7.3 7.3 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2Z",
+  repeat: "m17 2 4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4m14-1v2a4 4 0 0 1-4 4H3",
+  wifi: "M5 12.55a11 11 0 0 1 14 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01",
+  coffee: "M17 8h1a4 4 0 1 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4ZM6 2v2m4-2v2m4-2v2",
+  car: "M5 17h14M6 17v2m12-2v2M5 17l1.5-6h11l1.5 6M7 11l1.5-4h7L17 11M7.5 14h.01m9 0h.01",
+  phone: "M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z",
+  projector: "M2 8h20v8H2ZM7 12h.01M16 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM6 16v3m12-3v3",
+  sparkle: "M12 3l1.9 5.8L20 10.7l-5.8 1.9L12 18.5l-1.9-5.9L4 10.7l6.1-1.9Z",
+  mail: "M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm18 2-10 7L2 6",
+  upload: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m14-7-5-5-5 5m5-5v12",
+  palette: "M12 22a10 10 0 1 1 10-10c0 2.5-2 3-3.5 3H16a2 2 0 0 0-1.5 3.3A2 2 0 0 1 12 22ZM7.5 10.5h.01M12 7.5h.01M16.5 10.5h.01",
+  image: "M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm3.5 7a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM21 15l-5-5L5 21",
+};
+
+export function icon(name, cls = "") {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "2");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("class", `icon ${cls}`.trim());
+  const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p.setAttribute("d", PATHS[name] || PATHS.sparkle);
+  svg.append(p);
+  return svg;
+}
+
+/** Amenity name -> icon (the original app mapped WiFi, Projector, Coffee, Parking, Phone). */
+export function amenityIcon(name) {
+  const n = name.toLowerCase();
+  if (n.includes("wifi") || n.includes("wi-fi") || n.includes("אינטרנט")) return "wifi";
+  if (n.includes("projector") || n.includes("מקרן")) return "projector";
+  if (n.includes("coffee") || n.includes("קפה")) return "coffee";
+  if (n.includes("parking") || n.includes("חניה")) return "car";
+  if (n.includes("phone") || n.includes("טלפון")) return "phone";
+  return "sparkle";
+}
+
+// ---------- Toasts ----------
+export function toast(message, type = "info", ms = 3500) {
+  const host = document.getElementById("toasts");
+  const el = h("div", { class: `toast ${type}`, role: type === "error" ? "alert" : "status" }, message);
+  host.append(el);
+  setTimeout(() => el.remove(), ms);
+}
+
+// ---------- Dialog / bottom sheet ----------
+/**
+ * Opens a sheet. `body` is a node (or function(close) returning a node). `actions` is a list of buttons.
+ * Returns { close, el }. The dialog is removed from the DOM after closing.
+ */
+export function openSheet({ title, body, actions = [], onClose, labelledBy }) {
+  const titleId = labelledBy || `sheet-${Math.random().toString(36).slice(2)}`;
+  const dlg = h("dialog", { class: "sheet", "aria-labelledby": titleId });
+  const close = () => { if (dlg.open) dlg.close(); };
+  const content = typeof body === "function" ? body(close) : body;
+  const acts = typeof actions === "function" ? actions(close) : actions;
+  dlg.append(
+    h("div", { class: "sheet-handle", "aria-hidden": "true" }),
+    h("div", { class: "sheet-head" },
+      h("h2", { id: titleId }, title),
+      h("button", { class: "icon-btn flat", type: "button", "aria-label": t("cancel"), onclick: close }, icon("x"))),
+    h("div", { class: "sheet-body" }, content),
+    acts.length ? h("div", { class: "sheet-foot" }, acts) : null,
+  );
+  dlg.addEventListener("close", () => { dlg.remove(); onClose?.(); });
+  dlg.addEventListener("click", (e) => { if (e.target === dlg) close(); }); // tap on backdrop
+  document.body.append(dlg);
+  dlg.showModal();
+  return { close, el: dlg };
+}
+
+/** Promise<boolean> confirmation sheet. */
+export function confirmSheet({ title, message, confirmText, cancelText = t("cancel"), danger = false }) {
+  return new Promise((resolve) => {
+    let answered = false;
+    openSheet({
+      title,
+      body: h("p", { class: "muted" }, message),
+      actions: (close) => [
+        h("button", { class: "btn outline", type: "button", onclick: () => close() }, cancelText),
+        h("button", { class: `btn ${danger ? "danger" : ""}`, type: "button", onclick: () => { answered = true; close(); } }, confirmText),
+      ],
+      onClose: () => resolve(answered),
+    });
+  });
+}
+
+// ---------- Small building blocks ----------
+export const spinner = () => h("div", { class: "fullscreen-center" }, h("div", { class: "spinner", role: "status", "aria-label": "Loading" }));
+export const skeletons = (n = 3, height = 120) =>
+  h("div", { class: "stack" }, Array.from({ length: n }, () => h("div", { class: "skeleton", style: { height: `${height}px` } })));
+export const empty = (iconName, text, action) => h("div", { class: "empty" }, icon(iconName), h("p", null, text), action);
+
+export function errorBox(err, retry) {
+  return h("div", { class: "empty" }, icon("alert"), h("p", null, err?.message || t("loadingFailed")),
+    retry ? h("button", { class: "btn outline", onclick: retry }, t("retry")) : null);
+}
+
+export function backButton(href) {
+  return h("a", { class: "icon-btn flat", href, "data-link": "", "aria-label": t("back") }, icon("arrowLeft", "flip-rtl"));
+}
+
+export function pageHeader({ title, subtitle, back, actions }) {
+  return h("header", { class: "page-header" },
+    h("div", { class: "container wide" },
+      h("div", { class: "row between", style: { "--gap": "12px" } },
+        h("div", { class: "row grow", style: { "--gap": "12px" } },
+          back ? backButton(back) : null,
+          h("div", { class: "header-title" }, h("h1", { class: "truncate" }, title), subtitle ? h("p", { class: "small muted truncate" }, subtitle) : null)),
+        actions || null)));
+}
+
+export function statusBadge(status) {
+  const cls = { confirmed: "success", cancelled: "danger", completed: "" }[status] ?? "";
+  return h("span", { class: `badge ${cls}` }, t(status));
+}
+
+export function field(label, control, hint) {
+  const id = control.id || (control.id = `f-${Math.random().toString(36).slice(2)}`);
+  return h("div", { class: "field" }, h("label", { for: id }, label), control, hint ? h("p", { class: "xs muted" }, hint) : null);
+}

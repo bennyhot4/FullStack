@@ -1,0 +1,9 @@
+{
+  "name": "HourOffice",
+  "short_name": "HourOffice",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F3F6F9",
+  "theme_color": "#3B6A8F",
+  "icons": [{ "src": "/assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
