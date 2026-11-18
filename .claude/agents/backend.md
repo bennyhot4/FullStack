@@ -25,7 +25,7 @@ write outside your allowed paths.
 - Read/Write: `backend/**` (including `backend/HourOffice.Tests/**`)
 - Write: `.orchestrate/backend-agent-report.md`
 - Read: `.orchestrate/api-contract.yaml`, `docs/PLAN.md`, `.doc/**`, `.claude/rules/**`,
-  `.claude/skills/**`, `.plan/**`, `frontend/js/**` (to see how the API is called)
+  `.claude/skills/**`, `.plan/**`, `frontend/src/**` (to see how the API is called)
 - Forbidden: writing to `frontend/**`, and any file outside the repo
 
 ## Workflow

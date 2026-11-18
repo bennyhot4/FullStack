@@ -7,7 +7,7 @@
 ## Primary Components
 - **API** — `backend/HourOffice.Api`: ASP.NET Core 8 minimal API, stateless, Docker container
   (port 8080, health check `/healthz` — not reachable on `*.run.app`, see Hosting). Owns every business rule.
-- **Site** — `frontend/`: static vanilla HTML/JS SPA, deployed separately (Cloudflare Pages /
+- **Site** — `frontend/`: React + TypeScript SPA built by Vite into static files (`dist/`), deployed separately (Cloudflare Pages /
   Netlify). Knows only `apiBaseUrl` from `config.js`; everything else comes from
   `GET /api/settings/public`.
 - **Database** — MongoDB (local `mongod` in development, Atlas in production). Collections:

@@ -26,7 +26,7 @@ hour, and rules could be bypassed by calling the API directly (`docs/PLAN.md` §
   recurring), analytics (week/month), site settings/branding, he/en with RTL, PWA.
   Private client list per user (`/MyClients`), an optional client on a booking, filtering
   My bookings by client, and an Admin menu (`/Admin`) behind one bottom-nav item (plan 002).
-  A public privacy policy (`/PrivacyPolicy`, he/en, static text in `frontend/js/content/privacy.js`)
+  A public privacy policy (`/PrivacyPolicy`, he/en, static text in `frontend/src/content/privacy.ts`)
   linked from the login and terms pages (plan 007).
 - Out of scope: passwords, OTP, sending emails or messages of any kind, online payment,
   migrating data from Base44 (for now).
@@ -38,7 +38,7 @@ hour, and rules could be bypassed by calling the API directly (`docs/PLAN.md` §
 ## Acceptance Criteria
 Each criterion must be provable by a test or a command. (Source: `docs/PLAN.md` §8.)
 - AC01 — Quality gates: `dotnet build` and `dotnet test` pass in `backend/`, and every
-  `frontend/js/**/*.js` passes `node --check`.
+  `frontend/` passes `npm run typecheck`, `npm run lint` and `npm run build`.
 - AC02 — A user who has not accepted the current terms version cannot book, including via a
   direct API call; admins see who accepted and when.
 - AC03 — Changing colors/logo in site settings changes the whole app immediately.

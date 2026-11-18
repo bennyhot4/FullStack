@@ -22,7 +22,7 @@
 ## Repository Layout
 - `backend/` — ASP.NET Core 8 minimal API + MongoDB (`HourOffice.Api`) and its xUnit
   integration tests (`HourOffice.Tests`).
-- `frontend/` — vanilla HTML + ES modules SPA, no framework and no build step.
+- `frontend/` — React 19 + TypeScript SPA built by Vite into static files (`dist/` is what gets deployed).
 - `e2e/` — Playwright smoke test at phone size.
 - `docs/PLAN.md` — the master development plan (Hebrew). Its section 0 decisions override
   everything else. `docs/` holds only this hand-written plan; generated output never goes there.

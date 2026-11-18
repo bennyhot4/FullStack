@@ -13,9 +13,10 @@ backend/
   HourOffice.Tests/      37 בדיקות אינטגרציה מול MongoDB אמיתי
   Dockerfile
 frontend/
-  index.html, config.js  ← כתובת ה-API נקבעת כאן בלבד
-  css/, js/app.js (ניתוב + הרשאות), js/pages/ (מסך לכל עמוד), js/components/
-  dev-server.mjs         שרת מקומי לפיתוח
+  public/config.js       ← כתובת ה-API נקבעת כאן בלבד (קובץ זמן-ריצה, לא נארז ב-build)
+  src/app.tsx (ניתוב + הרשאות), src/pages/ (מסך לכל עמוד), src/components/, src/ui/
+  css/                   עיצוב (mobile-first, RTL)
+  React 19 + TypeScript, נבנה עם Vite ל-dist/ (תוכנית 009)
 e2e/smoke.mjs            בדיקת דפדפן מקצה לקצה בגודל טלפון
 ```
 
@@ -28,9 +29,10 @@ e2e/smoke.mjs            בדיקת דפדפן מקצה לקצה בגודל טל
 cd backend/HourOffice.Api
 ASPNETCORE_ENVIRONMENT=Development dotnet run --no-launch-profile --urls http://localhost:5080
 
-# 2. אתר על http://localhost:5500
+# 2. אתר על http://localhost:5500 (Vite, טעינה מחדש אוטומטית)
 cd frontend
-node dev-server.mjs 5500
+npm ci        # פעם אחת
+npm run dev
 ```
 
 נכנסים ל-http://localhost:5500, מתחברים עם `admin@example.com` בטופס "כניסת מפתחים", ממלאים פרופיל וחותמים על התקנון.
@@ -112,14 +114,18 @@ NODE_PATH=$(npm root -g) node e2e/smoke.mjs   # דורש API + אתר רצים �
 
 ### עדכון האתר
 
-ה-`config.js` בריפו מצביע על localhost ונשאר כך. בכל פריסה מעתיקים את `frontend/` לתיקייה זמנית (בלי `dev-server.mjs`), כותבים בה `config.js` של ייצור ומעלים:
+ה-`frontend/public/config.js` בריפו מצביע על localhost ונשאר כך. בכל פריסה בונים את האתר, כותבים `config.js` של ייצור **בתוך `frontend/dist/`** ומעלים רק את `dist/` (לעולם לא את `frontend/` עצמה – שם יש `node_modules` של ~120MB):
+
+```bash
+cd frontend && npm ci && npm run build
+```
 
 ```js
-// config.js בעותק לפריסה בלבד
+// frontend/dist/config.js בלבד (אחרי build)
 window.HOUROFFICE_CONFIG = { apiBaseUrl: "https://houroffice-api-770124643502.europe-west1.run.app" };
 ```
 ```bash
-npx wrangler@4 pages deploy <התיקייה-הזמנית> --project-name=houroffice --branch=main
+npx wrangler@4 pages deploy frontend/dist --project-name=houroffice --branch=main
 ```
 
 בדיקה: `https://houroffice.pages.dev` מציג את כפתור Google, וגם כתובת עמוקה כמו `/MyBookings` נטענת (בזכות `_redirects`). בפריסה הראשונה של כתובת חדשה Cloudflare יכול להחזיר 522 לכמה שניות.

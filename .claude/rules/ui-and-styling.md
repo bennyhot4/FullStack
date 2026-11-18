@@ -1,11 +1,12 @@
 # UI and Styling
 
 ## Building blocks — reuse, do not add libraries
-- Toasts: `toast(message, type)` from `frontend/js/ui.js` — concise and action-oriented.
-- Icons: `icon(name)` from `ui.js` (inline SVG paths in `PATHS`) — reuse the same icon name
+- Toasts: `toast(message, type)` from `frontend/src/ui` — concise and action-oriented.
+- Icons: `<Icon name="..." />` from `src/ui/icon.tsx` (inline SVG paths in `PATHS`) — reuse the same icon name
   for the same concept; add a path there rather than pulling an icon library.
 - Dialogs: `openSheet` / `confirmSheet` (bottom sheet on phones, modal on desktop).
-- Every visible string goes through `t(key)` with both `en` and `he` filled in `js/i18n.js`.
+- Every visible string goes through `t(key)` with both `en` and `he` filled in `src/i18n.ts`
+  (a missing key fails `npm run typecheck`).
 
 ## Styling
 - Plain CSS in `frontend/css/base.css` (tokens, layout) and `frontend/css/components.css`.

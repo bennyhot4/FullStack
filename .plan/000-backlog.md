@@ -12,6 +12,7 @@ Current queue:
 - [ ] Email booking invitations (.ics) on confirm + reminders before the booking, lead time set by admin list / user default / per booking (needs §0 #4 change; after 002) — plan: `.plan/003-2026-11-16-booking-reminders.md`
 - [ ] CI/CD: harden CI (SHA pins, permissions, CodeQL, zizmor, Dependabot), E2E in CI, auto-deploy staging on merge and prod on release tag with approval (Cloud Run + Cloudflare Pages, OIDC) — plan: `.plan/004-2026-11-16-ci-cd-pipeline.md`
 - [ ] Late cancellation: admin sets a cancellation notice (hours); the user is warned when cancelling inside it, and admins see the cancel date/time plus a red X "less than the approved time" — plan: `.plan/005-2026-11-17-late-cancellation.md`
+- [ ] Rebuild the site in React 19 + TypeScript (Vite static SPA, own router, same routes/DOM/CSS, `config.js` stays runtime, deploy `dist/` to Cloudflare Pages, cost stays ~$0, one release) (active, in progress on `feat/react-frontend`) — plan: `.plan/009-2026-11-18-react-frontend.md` | stack:frontend
 
 
 ## DONE
