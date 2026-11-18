@@ -81,7 +81,7 @@ Register). Q1 answered: name and e-mail below.
 4. Add the links on the login and terms pages; add the i18n keys in both languages.
 5. Update `.doc/product-definition.md`.
 6. Check in the browser: signed out and signed in, he (RTL) and en (LTR), 360 px and 1440 px.
-7. After plan 006 deploys the site: set the privacy link in Google Auth Platform → Branding and publish
+7. ✅ *(done 2026-11-17: link saved, app "In production")* After plan 006 deploys the site: set the privacy link in Google Auth Platform → Branding and publish
    the app.
 
 ## Validation
