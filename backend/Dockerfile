@@ -6,7 +6,7 @@ RUN dotnet restore HourOffice.Api/HourOffice.Api.csproj
 COPY HourOffice.Api/ HourOffice.Api/
 RUN dotnet publish HourOffice.Api -c Release -o /app --no-restore -p:PublishReadyToRun=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:11.0
 WORKDIR /app
 COPY --from=build /app .
 ENV ASPNETCORE_ENVIRONMENT=Production \
