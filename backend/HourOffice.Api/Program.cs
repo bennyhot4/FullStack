@@ -23,6 +23,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<MongoContext>();
 builder.Services.AddSingleton<BookingRules>();
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddSingleton<AdminClientSync>();
 builder.Services.AddSingleton<IGoogleTokenValidator, GoogleTokenValidator>();
 builder.Services.AddSingleton<IFileStorage>(sp =>
     sp.GetRequiredService<IOptions<StorageOptions>>().Value.Provider.Equals("S3", StringComparison.OrdinalIgnoreCase)
@@ -107,13 +108,16 @@ TermsEndpoints.Map(app);
 OfficeEndpoints.Map(app);
 BookingEndpoints.Map(app);
 ClientEndpoints.Map(app);
+DistributionListEndpoints.Map(app);
 AdminEndpoints.Map(app);
 SettingsEndpoints.Map(app);
 
-// Create indexes and seed the initial terms of use.
+// Create indexes, seed the initial terms of use, and fill the admins' client lists.
 var db = app.Services.GetRequiredService<MongoContext>();
 await db.EnsureIndexesAsync();
 await TermsSeeder.SeedAsync(db, app.Environment, app.Services.GetRequiredService<TimeProvider>());
+// Once per database: every active admin gets a copy of every registered user in their client list.
+await app.Services.GetRequiredService<AdminClientSync>().FillAllAdminsOnceAsync();
 
 app.Run();
 

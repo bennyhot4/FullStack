@@ -2,7 +2,7 @@
 // /MyClients, /BookOffice and /MyBookings.
 import { del, post, put } from "../api.js";
 import { t } from "../i18n.js";
-import { confirmSheet, errorText, field, h, openSheet, toast } from "../ui.js";
+import { confirmSheet, errorText, field, h, icon, openSheet, toast } from "../ui.js";
 
 export const clientName = (c) => `${c.firstName} ${c.lastName}`.trim();
 
@@ -64,6 +64,8 @@ export function openClientSheet({ client = null, onSaved, onDeleted, bookingsLin
   h("div", { class: "row", style: { "--gap": "10px", alignItems: "flex-start" } },
     h("div", { class: "grow" }, field(t("firstName"), firstName)),
     h("div", { class: "grow" }, field(t("lastName"), lastName))),
+  // A copy of a registered user (plan 008): their own profile changes update the name, first phone and email.
+  client?.sourceUserId ? h("p", { class: "row small muted", style: { "--gap": "6px" } }, icon("user", "sm"), t("registeredUser")) : null,
   phones.nodes, emails.nodes,
   field(t("clientLanguage"), language),
   h("div", null, h("label", { class: "switch" }, consent, t("whatsAppConsent")), h("p", { class: "xs muted" }, t("whatsAppConsentHint"))),

@@ -67,6 +67,8 @@ const check = (cond, msg) => { if (!cond) errors.push(`[${step}] ${msg}`); };
 const admin = await newUser("he");
 await signIn(admin, "admin@example.com", "Owner Admin", { first: "מנהל", last: "ראשי", phone: "050-7654321" });
 step = "admin nav";
+// signIn returns when the URL is "/", before the page (and its nav) has rendered.
+await admin.waitForSelector(".bottom-nav a");
 check(await admin.locator(".bottom-nav a").count() === 4, "admin should see 4 nav items");
 check(await admin.evaluate(() => document.documentElement.dir) === "rtl", "Hebrew should be RTL");
 
@@ -240,6 +242,50 @@ await rs.locator("text=✅").waitFor();
 const created = await rs.locator(".empty .bold").textContent();
 check(/^\d+ /.test(created) && parseInt(created, 10) > 0, `recurring created bookings (${created})`);
 await shot(admin, "recurring-result");
+
+// ---------- Registered users as the admin's clients + distribution lists (plan 008) ----------
+step = "admin sees registered users as clients";
+await admin.goto(`${WEB}/MyClients`);
+await admin.waitForSelector("main >> text=דנה לוי");
+check((await admin.textContent("main")).includes("Noa Cohen"), "Noa is in the admin's clients");
+await admin.click("main >> text=דנה לוי");
+await admin.locator("dialog.sheet >> text=משתמש רשום באתר").waitFor();
+await admin.locator("dialog.sheet .sheet-foot .btn.outline").click();
+await admin.locator("dialog.sheet").waitFor({ state: "detached" });
+
+step = "distribution lists hidden from regular users";
+await dana.goto(`${WEB}/MyClients`);
+await dana.waitForSelector("main .btn.block");
+check(await dana.locator('a[href="/DistributionLists"]').count() === 0, "regular user has no distribution lists link");
+await dana.goto(`${WEB}/DistributionLists`);
+await dana.waitForSelector("text=נדרשת הרשאת מנהל");
+
+step = "distribution list";
+await admin.goto(`${WEB}/MyClients`);
+await admin.click('a[href="/DistributionLists"]');
+await waitPath(admin, /^\/DistributionLists$/);
+await admin.waitForSelector("text=אין רשימות תפוצה עדיין");
+await admin.click("main .btn.block");
+const ls = admin.locator("dialog.sheet");
+await ls.locator("input").nth(0).fill("שוכרים");
+await ls.locator(".check-row", { hasText: "דנה לוי" }).click();
+await shot(admin, "distribution-list-form");
+await noHorizontalScroll(admin, "DistributionList sheet");
+await ls.locator('button[type="submit"]').click();
+await ls.waitFor({ state: "detached" });
+await admin.waitForSelector("main >> text=שוכרים");
+check((await admin.textContent("main")).includes("1 לקוחות"), "list has 1 client");
+await admin.click("main >> text=שוכרים");
+await ls.locator(".check-row", { hasText: "Noa Cohen" }).click();
+await ls.locator('button[type="submit"]').click();
+await ls.waitFor({ state: "detached" });
+await admin.waitForSelector("main >> text=2 לקוחות");
+await shot(admin, "distribution-lists");
+await noHorizontalScroll(admin, "DistributionLists");
+await admin.click("main >> text=שוכרים");
+await ls.locator(".btn.danger-outline").click();
+await admin.locator("dialog.sheet .btn.danger").click();
+await admin.waitForSelector("text=אין רשימות תפוצה עדיין");
 
 step = "regular user blocked from admin";
 await dana.goto(`${WEB}/AdminUsers`);

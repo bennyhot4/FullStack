@@ -28,6 +28,9 @@ hour, and rules could be bypassed by calling the API directly (`docs/PLAN.md` §
   My bookings by client, and an Admin menu (`/Admin`) behind one bottom-nav item (plan 002).
   A public privacy policy (`/PrivacyPolicy`, he/en, static text in `frontend/js/content/privacy.js`)
   linked from the login and terms pages (plan 007).
+  Every registered user is copied into each admin's own client list and kept in sync; private
+  distribution lists of a user's own clients (API for every user, site for admins only for now);
+  a marketing-consent field with a hidden checkbox on `/Register` (plan 008).
 - Out of scope: passwords, OTP, sending emails or messages of any kind, online payment,
   migrating data from Base44 (for now).
 
@@ -60,3 +63,8 @@ Each criterion must be provable by a test or a command. (Source: `docs/PLAN.md` 
   sent (§0 #4).
 - AC15 — `/PrivacyPolicy` opens signed out and signed in, in Hebrew (RTL) and English (LTR), and lists
   every kind of personal data the app stores; a feature that adds personal data updates it.
+- AC16 — When a user completes their profile, every active admin gets exactly one client copy of them
+  (`sourceUserId`); a user who becomes an admin gets every registered user; later profile changes
+  update the copies; deleting the user deletes the copies. No admin sees another user's clients.
+- AC17 — Distribution lists hold only the owner's own clients (another user's client → 404) and are
+  readable only by their owner; regular users see no distribution-list entry in the site yet.

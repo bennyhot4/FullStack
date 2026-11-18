@@ -33,6 +33,9 @@ public sealed class User
     public string Status { get; set; } = "active";
     public int? TermsAcceptedVersion { get; set; }
     public DateTime? TermsAcceptedAt { get; set; }
+    /// <summary>The user agreed to get updates and offers. Copied to the admins' clients made from this user.</summary>
+    public bool MarketingConsent { get; set; }
+    public DateTime? MarketingConsentAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
 }
@@ -102,6 +105,26 @@ public sealed class Client
     public bool WhatsAppConsent { get; set; }
     public DateTime? WhatsAppConsentAt { get; set; }
     public string Notes { get; set; } = "";
+    /// <summary>Set when the system added this client from a registered user (an admin's copy of that user).
+    /// Not stored when null, so the unique (userId, sourceUserId) index ignores hand-typed clients.</summary>
+    [BsonRepresentation(BsonType.ObjectId), BsonIgnoreIfNull] public string? SourceUserId { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+/// <summary>A named group of the owner's own clients, for future announcements. Private to its owner.</summary>
+public sealed class DistributionList
+{
+    public const int MaxPerUser = 100;
+    public const int MaxClients = 1000;
+    public const int MaxName = 60;
+    public const int MaxDescription = 300;
+
+    [BsonId, BsonRepresentation(BsonType.ObjectId)] public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
+    [BsonRepresentation(BsonType.ObjectId)] public string UserId { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string Description { get; set; } = "";
+    [BsonRepresentation(BsonType.ObjectId)] public List<string> ClientIds { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
@@ -142,6 +165,8 @@ public static class SettingKeys
     public const string BrandButtonsColor = "brand_buttons_color";
     public const string BrandBackgroundColor = "brand_background_color";
     public const string BrandPagesColor = "brand_pages_color";
+    /// <summary>Internal marker: the one-time fill of the admins' client lists has run (see AdminClientSync).</summary>
+    public const string AdminClientsFilled = "admin_clients_filled";
 
     public static readonly Dictionary<string, string> BrandDefaults = new()
     {

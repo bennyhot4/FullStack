@@ -82,6 +82,11 @@
 .switch input::after { content: ""; position: absolute; inset-block-start: 3px; inset-inline-start: 3px; width: 22px; height: 22px; background: #fff; border-radius: 50%; transition: inset-inline-start .15s; box-shadow: 0 1px 2px rgb(0 0 0 / .2); }
 .switch input:checked { background: var(--primary); }
 .switch input:checked::after { inset-inline-start: 21px; }
+/* A tappable checkbox row (distribution list members). */
+.check-row { display: flex; align-items: center; gap: 12px; min-height: var(--tap); padding-block: 6px; cursor: pointer; border-block-end: 1px solid var(--border); }
+.check-row input { width: 22px; height: 22px; flex: none; accent-color: var(--primary); cursor: pointer; }
+/* Built but not shown yet (e.g. the marketing consent checkbox, plan 008). */
+.is-hidden { display: none; }
 .color-field { display: flex; align-items: center; gap: 10px; }
 .color-field input[type="color"] { width: var(--tap); height: var(--tap); padding: 2px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); cursor: pointer; }
 .image-preview { width: 100%; max-height: 180px; object-fit: cover; border-radius: 12px; background: var(--surface-2); }

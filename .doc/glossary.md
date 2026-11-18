@@ -18,7 +18,9 @@
 | site settings | Admin-managed key/value content: banners, branding title/description/logo, colors | config |
 | branding | The three colors + title, description, logo applied to the whole site at runtime | theme |
 | `currency` | ISO code stored on each office and booking (default `ILS`); display symbol by language | |
-| `client` | A person a user serves, kept in that user's private client list (name, 1–2 phones, 0–2 emails, consent flag); a booking may link one via `clientId`. Visible to its owner only, never to admins | customer, contact, patient |
+| `client` | A person a user serves, kept in that user's private client list (name, 1–2 phones, 0–2 emails, consent flag); a booking may link one via `clientId`. Visible to its owner only, never to admins. Each admin's list also holds a copy of every registered user, marked with `sourceUserId` and kept in sync with that user's profile | customer, contact, patient |
+| distribution list | A named group of the owner's own clients, for future announcements (`DistributionList`, collection `distributionLists`, `/api/distribution-lists`; Hebrew "רשימת תפוצה"). Private to its owner. Nothing is sent yet | mailing list, group, audience, segment |
+| marketing consent | A user's own opt-in to receive updates and offers (`users.marketingConsent`); copied to the admins' copies of that user as `whatsAppConsent` | opt-in, subscription |
 
 ## Naming Alignment
 - Keep this glossary aligned with naming decisions in `../.claude/rules/naming.md`.
