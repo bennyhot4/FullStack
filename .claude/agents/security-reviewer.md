@@ -19,6 +19,6 @@ In this repository pay particular attention to:
 - Dev login (`/api/auth/dev-login`) can never be enabled in Production.
 - Refresh tokens: stored server-side, rotated, revoked on logout.
 - Uploads: size/type limits, no path traversal in `LocalFileStorage`.
-- Frontend: no `innerHTML` with user/server data; CORS limited to `Cors:AllowedOrigins`.
+- Frontend: no `dangerouslySetInnerHTML`/`innerHTML`; new npm dependencies justified in a plan; CORS limited to `Cors:AllowedOrigins`.
 
 Provide specific line references and suggested fixes.

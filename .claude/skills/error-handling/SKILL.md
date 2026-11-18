@@ -44,7 +44,7 @@ Catch unique-index violations with `catch (Exception ex) when (MongoContext.IsDu
 and return a `409` — e.g. the `uniq_confirmed_slot` index → `slot_taken`, unique email → `user_exists`.
 
 ## Frontend
-- `js/api.js` throws `ApiError(status, code, message)`. Network failures become `network_error`.
+- `src/api.ts` throws `ApiError(status, code, message)`; `asApiError(e)` narrows a caught value. Network failures become `network_error`.
 - Handle the codes a screen can recover from explicitly (`e.code === "slot_taken"` → translated
   toast + reload slots); otherwise show `e.message` or `t("loadingFailed")`.
 - Every user-facing message is a `t(key)` with `en` and `he`. Show it via `toast` or an inline

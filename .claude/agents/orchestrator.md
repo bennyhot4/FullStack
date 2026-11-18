@@ -29,7 +29,7 @@ You are called for one job at a time and you answer that job only.
 |---|---|---|
 | `docs/PLAN.md` | Master development plan (Hebrew); §0 decisions override everything | Humans |
 | `.doc/` | Product definition, architecture, glossary | Humans |
-| `backend/`, `frontend/`, `e2e/` | ASP.NET Core API + tests, vanilla JS site, smoke test | The agents |
+| `backend/`, `frontend/`, `e2e/` | ASP.NET Core API + tests, React + TypeScript site, smoke test | The agents |
 | `.claude/rules/` | Always-on constraints, imported by `AGENTS.md` | Humans |
 | `.claude/skills/` | On-demand procedures (`writing-plans`, `writing-tests`, …) | Humans |
 | `.plan/000-backlog.md` | The task queue | Humans + the loop |

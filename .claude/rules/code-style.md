@@ -2,13 +2,17 @@
 
 Match the surrounding code. The existing conventions are:
 
-## JavaScript (`frontend/`, `e2e/`)
-- Native ES modules, no framework, no bundler, no npm dependencies in `frontend/`.
+## TypeScript / React (`frontend/`)
+- React 19 function components + hooks, TypeScript `strict`, built by Vite (plan 009). Runtime
+  dependencies are only `react` and `react-dom`; anything else needs a reason in a plan.
 - Semicolons at the end of statements, double quotes, 2-space indent.
-- Build DOM with `h(tag, attrs, ...children)` / `clear(el, ...)` from `js/ui.js` — no
-  `innerHTML` anywhere (XSS). Markdown is rendered by `components/markdown.js`, which
-  builds DOM nodes directly.
-- Every file must pass `node --check` (that is the CI gate for the frontend).
+- No `dangerouslySetInnerHTML` / `innerHTML` anywhere (XSS). Markdown is rendered by
+  `src/components/markdown.tsx`, which builds React elements.
+- No `any` (ESLint enforces it). API response shapes live in `src/types/api.ts`.
+- `npm run typecheck`, `npm run lint` and `npm run build` must pass (the CI gate for the frontend).
+
+## JavaScript (`e2e/`)
+- Native ES modules, semicolons, double quotes, 2-space indent; every file passes `node --check`.
 
 ## C# (`backend/`)
 - .NET 8, nullable enabled, file-scoped namespaces, `sealed` classes, primary constructors.

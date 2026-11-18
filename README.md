@@ -64,7 +64,7 @@ The project has two independent parts that talk to each other over the internet.
 
 | Part | What it does | Built with |
 |---|---|---|
-| **Website** | Everything you see and tap | Plain **JavaScript**, **HTML** and **CSS**. No framework, no build step, nothing to install. |
+| **Website** | Everything you see and tap | **React** with **TypeScript**, plain **CSS**, built by **Vite** into static files. Only two runtime libraries (React and React DOM). |
 | **Server (API)** | Stores data, checks every rule, handles sign-in | **C#** on **ASP.NET Core 8** (Microsoft's web platform) |
 | **Database** | Keeps offices, users, bookings, clients and terms | **MongoDB** |
 | **Automated tests** | Prove the rules hold, for example no double bookings and no admin pages for regular users | **C#** (xUnit, 48 tests against a real database) and **JavaScript** (Playwright, which clicks through the site on a phone-sized screen in both languages) |

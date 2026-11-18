@@ -39,3 +39,8 @@ playwright-report/
 !.dev.vars.example
 .env*
 !.env.example
+
+# Frontend build (plan 009)
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo

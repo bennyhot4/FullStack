@@ -10,9 +10,10 @@ backend/
   HourOffice.Tests/      48 בדיקות אינטגרציה מול MongoDB אמיתי
   Dockerfile
 frontend/
-  index.html, config.js  ← כתובת ה-API נקבעת כאן בלבד
-  css/, js/app.js (ניתוב + הרשאות), js/pages/ (מסך לכל עמוד), js/components/
-  dev-server.mjs         שרת מקומי לפיתוח
+  public/config.js       ← כתובת ה-API נקבעת כאן בלבד (קובץ זמן-ריצה, לא נארז ב-build)
+  src/app.tsx (ניתוב + הרשאות), src/pages/ (מסך לכל עמוד), src/components/, src/ui/
+  css/                   עיצוב (mobile-first, RTL)
+  React 19 + TypeScript, נבנה עם Vite ל-dist/ (תוכנית 009)
 e2e/smoke.mjs            בדיקת דפדפן מקצה לקצה בגודל טלפון
 ```
 
@@ -25,9 +26,10 @@ e2e/smoke.mjs            בדיקת דפדפן מקצה לקצה בגודל טל
 cd backend/HourOffice.Api
 ASPNETCORE_ENVIRONMENT=Development dotnet run --no-launch-profile --urls http://localhost:5080
 
-# 2. אתר על http://localhost:5500
+# 2. אתר על http://localhost:5500 (Vite, טעינה מחדש אוטומטית)
 cd frontend
-node dev-server.mjs 5500
+npm ci        # פעם אחת
+npm run dev
 ```
 
 נכנסים ל-http://localhost:5500, מתחברים עם `admin@example.com` בטופס "כניסת מפתחים", ממלאים פרופיל וחותמים על התקנון.
@@ -37,6 +39,7 @@ node dev-server.mjs 5500
 ```bash
 cd backend && dotnet test                     # 48 בדיקות; מפעילות mongod זמני בעצמן, לא צריך MongoDB מותקן
 NODE_PATH=$(npm root -g) node e2e/smoke.mjs   # דורש API + אתר רצים מול מסד נתונים ריק, ו-Playwright מותקן
+cd frontend && npm run typecheck && npm run lint && npm run build   # בדיקות האתר (כמו ב-CI)
 ```
 
 ## הגדרות ה-API (משתני סביבה)
@@ -109,10 +112,14 @@ NODE_PATH=$(npm root -g) node e2e/smoke.mjs   # דורש API + אתר רצים �
 
 ### עדכון האתר
 
-ה-`config.js` בריפו מצביע על localhost ונשאר כך. בכל פריסה מעתיקים את `frontend/` לתיקייה זמנית (בלי `dev-server.mjs`), כותבים בה `config.js` של ייצור ומעלים:
+ה-`frontend/public/config.js` בריפו מצביע על localhost ונשאר כך. בכל פריסה בונים את האתר, מעתיקים את `frontend/dist/` (רק אותה – לעולם לא את `frontend/` עצמה, שבה `node_modules` של ~120MB) לתיקייה זמנית, כותבים בה `config.js` של ייצור ומעלים:
+
+```bash
+cd frontend && npm ci && npm run build   # יוצר את frontend/dist
+```
 
 ```js
-// config.js בעותק לפריסה בלבד
+// config.js בעותק של dist לפריסה בלבד
 window.HOUROFFICE_CONFIG = { apiBaseUrl: "https://houroffice-api-770124643502.europe-west1.run.app" };
 ```
 ```bash

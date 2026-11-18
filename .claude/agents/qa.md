@@ -33,7 +33,7 @@ feature source — if a write is rejected, that is the rule working, not a bug t
 ### Step 2: Static checks
 ```bash
 cd backend && dotnet build
-for f in frontend/js/*.js frontend/js/**/*.js; do node --check "$f"; done
+(cd frontend && npm ci && npm run typecheck && npm run lint && npm run build)
 ```
 
 ### Step 3: Backend tests
@@ -65,7 +65,7 @@ Write `.orchestrate/qa-report.md`:
 Ticket: <id>
 Scope: <backend | frontend | full>
 
-Build:       <result> · node --check <result>
+Build:       <result> · frontend typecheck/lint/build <result>
 Backend:     X passed, Y failed
 E2E smoke:   <pass/fail | not run, reason>
 

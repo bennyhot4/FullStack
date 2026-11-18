@@ -24,7 +24,7 @@ description: Write or review backend integration tests and the e2e smoke test. U
 |---|---|---|
 | Backend integration (xUnit) | `backend/HourOffice.Tests/` | `cd backend && dotnet test` |
 | One class / one test | | `dotnet test --filter "FullyQualifiedName~BookingTests"` |
-| Frontend syntax gate | `frontend/js/**` | `node --check <file>` for each file (what CI runs) |
+| Frontend gate | `frontend/src/**` | `npm run typecheck`, `npm run lint`, `npm run build` in `frontend/` (what CI runs) |
 | E2E smoke (Playwright, phone size, he + en) | `e2e/smoke.mjs` | `NODE_PATH=$(npm root -g) node e2e/smoke.mjs` — needs API + site running on an **empty** DB |
 
 ### Backend harness (`TestApp.cs`)
