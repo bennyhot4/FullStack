@@ -8,6 +8,12 @@
       "port": 5080
     },
     {
+      "name": "api-e2e",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NoProfile", "-Command", "$env:ASPNETCORE_ENVIRONMENT='Development'; $env:Mongo__Database='houroffice_e2e'; Set-Location backend/HourOffice.Api; dotnet run --no-launch-profile --urls http://localhost:5080"],
+      "port": 5080
+    },
+    {
       "name": "web",
       "runtimeExecutable": "node",
       "runtimeArgs": ["frontend/dev-server.mjs", "5500"],
