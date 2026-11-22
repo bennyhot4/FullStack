@@ -2,7 +2,7 @@
 
 Status: active
 Owner: bennyhot4
-Last updated: 2026-11-17
+Last updated: 2026-11-22
 
 ## Goal
 Put HourOffice on the internet for real users at **~$0 per month**, using the owner's existing free
@@ -103,6 +103,10 @@ R2; free addresses, no domain yet; accept cold start + startup CPU boost; owner 
    money every month. **Recommended:** accept it, and turn on the free "startup CPU boost" to shorten it.
 7. **Who is admin on day one, and is signup open?** **Recommended:** `Auth__AdminEmails__0` = your Google
    account; `Auth__AllowOpenSignup=false` until you have invited your users, then decide.
+   **Decided 2026-11-22: signup is open (`Auth__AllowOpenSignup=true`).** A new user the owner shared
+   the link with got "Access Restricted" (`user_not_registered`), and the owner chose open signup over
+   inviting each user. Any Google account now signs in as a regular `user`; only `Auth__AdminEmails__0`
+   is admin, and other admins are promoted on the Users screen.
 
 ## Steps
 Run by the owner from the runbook (I prepare every command; nothing secret goes through chat).
@@ -152,7 +156,7 @@ Run by the owner from the runbook (I prepare every command; nothing secret goes 
    Google kept "Publish app" disabled until the branding had a **privacy policy link**, so plan 007 added
    `/PrivacyPolicy`; after step 8 the link `https://houroffice.pages.dev/PrivacyPolicy` was saved and the app
    was published: **publishing status "In production"** (any Google account can reach the sign-in; the API
-   still only admits invited users because `AllowOpenSignup=false`).
+   then only admitted invited users because `AllowOpenSignup=false`; open since 2026-11-22, see Q7).
 7. **Deploy the API**: `gcloud run deploy houroffice-api --source backend --region europe-west1
    --allow-unauthenticated --max-instances 2 --min-instances 0 --cpu-boost --memory 512Mi --cpu 1
    --set-secrets Mongo__ConnectionString=mongo-connection-string:latest,Auth__JwtSigningKey=jwt-signing-key:latest,Storage__S3__SecretKey=r2-secret-key:latest,Storage__S3__AccessKey=r2-access-key-id:latest
@@ -168,6 +172,12 @@ Run by the owner from the runbook (I prepare every command; nothing secret goes 
    - On Windows `gcloud` is a `.cmd`, so `--set-env-vars` with a custom `^|^` delimiter breaks in cmd.exe;
      the plain env vars went in an `--env-vars-file` YAML (no secrets in it).
    - Admin `benny.hot4@gmail.com`, `AllowOpenSignup=false`, `Auth__GoogleClientId` = the step 6 client.
+   - *(2026-11-22)* Open signup turned on with
+     `gcloud run services update houroffice-api --region europe-west1 --update-env-vars Auth__AllowOpenSignup=true`
+     (changes only that variable; secrets and other env vars untouched). Revision `houroffice-api-00003-fgt`
+     (previous: `houroffice-api-00002-h66`); `/api/settings/public` returns `allowOpenSignup:true`, and the
+     owner confirmed the new user can sign in. The next full `gcloud run deploy` must pass
+     `Auth__AllowOpenSignup=true` in its `--env-vars-file`, or it switches signup back off.
    - Artifact Registry repo `cloud-run-source-deploy` (europe-west1, image ≈ 91 MB) has the cleanup policy
      keep-newest-2 + delete-older-than-1d.
    Checks: `/api/settings/public` 200 with the client id and `devLoginEnabled:false`; CORS header only for
@@ -233,7 +243,8 @@ Run by the owner from the runbook (I prepare every command; nothing secret goes 
 2. Steps 1–6 (accounts, secrets, OAuth) — nothing is public yet.
 3. Step 7 (API) and its `/healthz` + CORS + dev-login checks.
 4. Step 8 (site) and the end-to-end checks with the admin account.
-5. Invite users (admin pre-creates them), keep `AllowOpenSignup=false` until then.
+5. ~~Invite users (admin pre-creates them), keep `AllowOpenSignup=false` until then.~~ Superseded
+   2026-11-22: signup is open (Q7), no invitation needed.
 6. Step 10 docs; then plan 004 automates the same deploy.
 
 ## Rollback
