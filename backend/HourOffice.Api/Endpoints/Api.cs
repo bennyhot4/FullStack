@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using HourOffice.Api.Data;
+using HourOffice.Api.Services;
 using MongoDB.Driver;
 
 namespace HourOffice.Api.Endpoints;
@@ -14,6 +15,11 @@ public static class Api
     public static IResult NotFound(string code = "not_found") => Error(404, code);
     public static IResult Conflict(string code, string? message = null) => Error(409, code, message);
     public static IResult Forbidden(string code = "forbidden") => Error(403, code);
+
+    public static IResult ToResult(this ServiceError e) => Error(e.Status, e.Code, e.Message);
+
+    /// <summary>200 with the value, or the error as <c>{ code, message }</c>.</summary>
+    public static IResult ToResult<T>(this Outcome<T> o) => o.Error?.ToResult() ?? Results.Ok(o.Value);
 
     public static string? UserId(this ClaimsPrincipal p) =>
         p.FindFirstValue(ClaimTypes.NameIdentifier) ?? p.FindFirstValue("sub");
@@ -68,9 +74,8 @@ public static class Api
             var db = ctx.HttpContext.RequestServices.GetRequiredService<MongoContext>();
             var user = await ctx.HttpContext.CurrentUserAsync(db);
             if (user is null) return Error(401, "unauthorized");
-            var version = await TermsEndpoints.CurrentVersionAsync(db, ctx.HttpContext.RequestAborted);
-            if (version > 0 && (user.TermsAcceptedVersion ?? 0) < version) return Forbidden("terms_required");
-            return await next(ctx);
+            var gate = await UserGates.TermsAsync(db, user, ctx.HttpContext.RequestAborted);
+            return gate is not null ? gate.ToResult() : await next(ctx);
         });
         return b;
     }

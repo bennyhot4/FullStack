@@ -191,3 +191,50 @@ export interface RecurringResult {
   skipped: number;
   seriesId: string;
 }
+
+// AI assistants / MCP (plan 011): OAuthEndpoints.cs and ConnectedAppsEndpoints.cs
+export type McpScope = "offices:read" | "bookings:read" | "bookings:write" | "clients:basic" | "clients:full"
+  | "admin:read" | "admin:write";
+
+export interface ConsentScope {
+  scope: McpScope;
+  defaultOn: boolean;
+  sensitive: boolean;
+  admin: boolean;
+}
+
+export interface ConsentRequest {
+  requestId: string;
+  clientName: string;
+  redirectHost: string;
+  verified: boolean;
+  scopes: ConsentScope[];
+  needsFreshSignIn: boolean;
+  expiresAt: string;
+}
+
+export interface DecisionResponse {
+  redirectUrl: string;
+}
+
+export interface ConnectedApp {
+  clientId: string;
+  name: string;
+  verified: boolean;
+  scopes: McpScope[];
+  connectedAt: string | null;
+  lastUsedAt: string | null;
+}
+
+export interface AdminMcpConnection extends ConnectedApp {
+  userId: string;
+  email: string;
+}
+
+export interface McpSettings {
+  enabled: boolean;
+  switchOn: boolean;
+  available: boolean;
+  resource: string;
+  connections: AdminMcpConnection[];
+}

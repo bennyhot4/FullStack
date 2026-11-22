@@ -2,8 +2,8 @@
 // Markdown subset rendered by components/markdown.tsx: "## heading", "**bold**", "- list", paragraphs.
 // When a feature adds or removes personal data, update both languages here and bump `version` + `updated`.
 
-export const version = 2;
-export const updated = "2026-11-18";
+export const version = 3;
+export const updated = "2026-11-22";
 
 export const he = `## מי אנחנו
 HourOffice היא מערכת להזמנת משרדים וחדרים לפי שעה. המערכת מופעלת על ידי **בני חוטיאקוב**. לכל שאלה או בקשה בנושא פרטיות אפשר לפנות לכתובת **benny.hot4@gmail.com**.
@@ -34,6 +34,11 @@ HourOffice היא מערכת להזמנת משרדים וחדרים לפי שע�
 - מנהלי המערכת רואים את פרטי המשתמשים, את ההזמנות ואת הערות ההזמנה. השם, הטלפון והאימייל שלך נמצאים גם ברשימת הלקוחות של כל מנהל.
 - רשימות התפוצה שלך גלויות רק לך.
 - איננו מוכרים מידע, איננו משתפים אותו עם מפרסמים ואיננו משתמשים בו לפרסום.
+
+## עוזרי AI (חיבור MCP)
+- אפשר לחבר לחשבון עוזר AI (למשל Claude או ChatGPT) רק מתוך מסך אישור שבו בוחרים מה העוזר רשאי לעשות. כברירת מחדל העוזר רואה משרדים, את ההזמנות שלך ושמות הלקוחות שלך בלבד; טלפונים, אימיילים והערות של לקוחות נשלחים רק אם סימנת זאת במפורש.
+- **מה שהעוזר קורא נשלח לחברה שמפעילה אותו** ונשמר לפי מדיניות הפרטיות שלה. החיבור הוא בחירה שלך, ואפשר לנתק אותו בכל רגע בעמוד "אפליקציות מחוברות".
+- על כל פעולה של עוזר נשמרת אצלנו רשומה (מי, איזה כלי, מתי, ותוצאה) למשך 90 יום (שנה לפעולות ניהול), בלי תוכן ההערות ובלי פרטי לקוחות.
 
 ## איפה המידע נשמר
 - מסד הנתונים: MongoDB Atlas, בשרתי Google Cloud בבלגיה
@@ -78,6 +83,11 @@ HourOffice is a system for booking offices and rooms by the hour. It is operated
 - Administrators can see user details, bookings and booking notes. Your name, phone and email are also in every administrator's client list.
 - Your distribution lists are visible only to you.
 - We do not sell data, share it with advertisers or use it for advertising.
+
+## AI assistants (MCP connection)
+- An AI assistant (for example Claude or ChatGPT) can be connected to your account only through a consent screen where you choose what it may do. By default it sees offices, your bookings and your clients' names only; clients' phones, emails and notes are sent only if you explicitly allow it.
+- **What the assistant reads is sent to the company that runs it** and kept under that company's privacy policy. Connecting is your choice, and you can disconnect at any time under "Connected apps".
+- For every action of an assistant we keep a record (who, which tool, when, and the result) for 90 days (one year for admin actions), without note contents or client details.
 
 ## Where it is stored
 - Database: MongoDB Atlas, on Google Cloud servers in Belgium

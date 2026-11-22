@@ -38,11 +38,11 @@ public static class AuthEndpoints
 
         auth.MapPost("/refresh", async (RefreshRequest req, TokenService tokens, MongoContext db, CancellationToken ct) =>
         {
-            var userId = await tokens.ConsumeRefreshTokenAsync(req.RefreshToken ?? "", ct);
-            if (userId is null) return Api.Error(401, "invalid_refresh_token");
-            var user = await db.Users.Find(u => u.Id == userId).FirstOrDefaultAsync(ct);
+            var session = await tokens.ConsumeRefreshTokenAsync(req.RefreshToken ?? "", ct);
+            if (session is null) return Api.Error(401, "invalid_refresh_token");
+            var user = await db.Users.Find(u => u.Id == session.UserId).FirstOrDefaultAsync(ct);
             if (user is null) return Api.Error(401, "invalid_refresh_token");
-            var t = await tokens.IssueAsync(user, ct);
+            var t = await tokens.IssueAsync(user, session.AuthTime, ct);
             var version = await TermsEndpoints.CurrentVersionAsync(db, ct);
             return Results.Ok(new AuthResponse(t.AccessToken, t.RefreshToken, t.AccessTokenExpiresAt, UserDto.From(user, version)));
         });
@@ -155,7 +155,7 @@ public static class AuthEndpoints
         // Promoted through Auth:AdminEmails, a new admin, or an invited admin's first sign-in.
         if (!wasActiveAdmin && user.Role == Roles.Admin) await sync.AddAllUsersToAdminAsync(user, ct);
 
-        var t = await tokens.IssueAsync(user, ct);
+        var t = await tokens.IssueAsync(user, now, ct);
         var version = await TermsEndpoints.CurrentVersionAsync(db, ct);
         return Results.Ok(new AuthResponse(t.AccessToken, t.RefreshToken, t.AccessTokenExpiresAt, UserDto.From(user, version)));
     }

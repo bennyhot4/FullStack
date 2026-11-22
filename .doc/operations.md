@@ -55,6 +55,16 @@ cd frontend && npm run typecheck && npm run lint && npm run build   # בדיקו
 | `Cors__AllowedOrigins__0` | ✔ | כתובת האתר, למשל `https://houroffice.pages.dev` |
 | `Storage__Provider` | | `Local` (פיתוח) או `S3` (ייצור – Cloudflare R2) + `Storage__S3__*` |
 | `Booking__*`, `Currency__*` | | שעות פתיחה, ימים קדימה, אזור זמן, סמלי מטבע לפי שפה |
+| `Mcp__Enabled` | | מתג ראשי לעוזרי AI (תוכנית 011). `false` (ברירת מחדל): `/mcp` ו-`/oauth/*` מחזירים 503 |
+| `Mcp__Issuer` | עם MCP | הכתובת הציבורית של ה-API עם `/` בסוף, למשל `https://houroffice-api-….run.app/` |
+| `Mcp__SiteUrl` | עם MCP | כתובת האתר (דף ההסכמה `/McpConsent`), למשל `https://houroffice.pages.dev/` |
+| `Mcp__SigningKey` | עם MCP | מפתח RSA פרטי (PEM) שחותם על הטוקנים. **סוד** |
+| `Mcp__EncryptionKey` | עם MCP | 32 בתים ב-base64 שמצפינים את הטוקנים (JWE). **סוד** |
+| `Mcp__AllowedOrigins__0` | | מקורות דפדפן שמותר להם לקרוא ל-`/mcp` (בדרך כלל ריק) |
+| `Mcp__BookingWritesPerHour`, `Mcp__AdminWritesPerHour`, `Mcp__CallsPerMinute` | | מגבלות (10 / 30 / 60) |
+| `FieldEncryption__Mode` | | `off` (ברירת מחדל), `encrypt` או `decrypt` (הדרך חזרה). הצפנת טלפונים, אימיילים של לקוחות והערות |
+| `FieldEncryption__KmsProvider` | | `gcp` בייצור (Cloud KMS), `local` רק בפיתוח ובבדיקות |
+| `FieldEncryption__Gcp__ProjectId` | עם הצפנה | `houroffice-prod` (ה-key ring `houroffice`, המפתח `mongo-cmk`, `europe-west1` הם ברירות המחדל) |
 
 כניסת המפתחים (`Auth__DevLoginEnabled`) **לא פועלת בסביבת Production** גם אם מופעלת בטעות.
 
@@ -144,6 +154,59 @@ gcloud secrets versions add <שם-הסוד> --data-file=-   # מדביקים א�
 
 - **API:** `gcloud run services update-traffic houroffice-api --to-revisions=<revision-קודמת>=100` (מיידי). רשימת revisions: `gcloud run revisions list --service houroffice-api`.
 - **אתר:** Cloudflare → Workers & Pages → `houroffice` → Deployments → "Rollback to this deployment".
+
+### עוזרי AI (MCP) – תוכנית 011
+
+שרת ה-MCP רץ בתוך אותו שירות Cloud Run (`/mcp`), ושרת ה-OAuth שלו הוא OpenIddict באותו תהליך. אין פריסה שלישית ואין עלות נוספת.
+
+**הקמה חד-פעמית של הסודות** (המפתחות נוצרים מקומית ונכנסים ישר ל-Secret Manager דרך stdin – לא מודפסים, לא נשמרים בקובץ):
+```bash
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 | gcloud secrets create mcp-signing-key --data-file=-
+openssl rand -base64 32 | tr -d '\n' | gcloud secrets create mcp-encryption-key --data-file=-
+gcloud secrets add-iam-policy-binding mcp-signing-key --member=serviceAccount:houroffice-api@houroffice-prod.iam.gserviceaccount.com --role=roles/secretmanager.secretAccessor
+gcloud secrets add-iam-policy-binding mcp-encryption-key --member=serviceAccount:houroffice-api@houroffice-prod.iam.gserviceaccount.com --role=roles/secretmanager.secretAccessor
+```
+
+**פריסה:** מוסיפים ל-`env.prod.yaml`:
+```yaml
+Mcp__Enabled: "false"   # קודם "בחושך"; מדליקים ל-"true" אחרי הבדיקה (שלב 3 בתוכנית 011)
+Mcp__Issuer: "https://houroffice-api-770124643502.europe-west1.run.app/"
+Mcp__SiteUrl: "https://houroffice.pages.dev/"
+```
+ולפקודת הפריסה מוסיפים ל-`--set-secrets`: `,Mcp__SigningKey=mcp-signing-key:latest,Mcp__EncryptionKey=mcp-encryption-key:latest`.
+בדיקה: `curl -s -o /dev/null -w "%{http_code}" -X POST .../mcp` מחזיר 503 כשכבוי ו-401 כשדולק; `curl .../.well-known/oauth-authorization-server` מחזיר את ה-issuer וה-`registration_endpoint`.
+בייצור, `Mcp__Enabled=true` בלי שני המפתחות עוצר את עליית השרת (בכוונה).
+
+**כתובת החיבור לעוזר:** `https://houroffice-api-770124643502.europe-west1.run.app/mcp`. ב-Claude: Settings → Connectors → Add custom connector → הכתובת. ההתחברות עוברת דרך דף ההסכמה באתר.
+
+**מתג כיבוי:** הכי מהר – מתג "לאפשר עוזרי AI" ב**הגדרות האתר** (שניות, בלי פריסה). המתג הראשי הוא `Mcp__Enabled` (revision חדש). "לנתק את כולם" באותו מסך מבטל כל טוקן מיד.
+
+**החלפת מפתחות (כל 6 חודשים או בחשד לדליפה):** מוסיפים גרסה לסוד (כמו למעלה, עם `gcloud secrets versions add`) ופורסים מחדש. כל הטוקנים הקיימים נפסלים, והמשתמשים מתחברים שוב דרך דף ההסכמה.
+
+**Claude / ChatGPT כ"מאומתים":** לפי כתובות ה-redirect ב-`Mcp:KnownClients` (`appsettings.json`). לבדוק מול התיעוד של כל ספק לפני ההשקה; אם כתובת השתנתה, החיבור עובד אבל מוצג "לא מאומת".
+
+### הצפנת שדות (Phase C של תוכנית 011)
+
+טלפונים (`users.phoneNumber`, `clients.phones`), אימיילים של לקוחות (`clients.emails`) והערות (`clients.notes`, `bookings.notes`) נשמרים מוצפנים (MongoDB CSFLE, מצב explicit, עובד ב-Atlas M0). מפתח הנתונים נשמר באוסף `encryptionKeys`, עטוף במפתח-אב ב-Cloud KMS.
+
+**הקמה חד-פעמית:**
+```bash
+gcloud services enable cloudkms.googleapis.com
+gcloud kms keyrings create houroffice --location europe-west1
+gcloud kms keys create mongo-cmk --keyring houroffice --location europe-west1 --purpose encryption --rotation-period 365d --next-rotation-time 2027-11-22T00:00:00Z
+gcloud kms keys add-iam-policy-binding mongo-cmk --keyring houroffice --location europe-west1 --member=serviceAccount:houroffice-api@houroffice-prod.iam.gserviceaccount.com --role=roles/cloudkms.cryptoKeyEncrypterDecrypter
+```
+⚠️ **לעולם לא להשמיד את `mongo-cmk`** – בלעדיו השדות המוצפנים אבודים. השמדה ב-KMS מחכה 30 יום; אפשר לבטל אותה בזמן הזה.
+
+**הפעלה:** קודם גיבוי מלא (הבעלים, מחוץ לענן): `mongodump --uri "$(gcloud secrets versions access latest --secret=mongo-connection-string)" --out <תיקייה-מקומית>`. אחר כך ל-`env.prod.yaml`:
+```yaml
+FieldEncryption__Mode: "encrypt"
+FieldEncryption__KmsProvider: "gcp"
+FieldEncryption__Gcp__ProjectId: "houroffice-prod"
+```
+ופריסה. ההצפנה של המסמכים הקיימים רצה ברקע בעליית השרת (קריאה עובדת גם על ערכים ישנים בינתיים). בדיקה ב-`mongosh`: `db.clients.findOne().phones` מחזיר `Binary(..., 6)`, ו-`db.siteSettings.findOne({key:"fields_encrypted"})` מחזיר `"true"`.
+
+**החזרה לאחור:** פורסים עם `FieldEncryption__Mode: "decrypt"`, מחכים ש-`fields_encrypted` יהיה `"false"`, ורק אז `off` או revision ישן. **revision מלפני ההצפנה לא יודע לקרוא שדות מוצפנים** – לא לחזור אליו לפני הפענוח. עם `off` ונתונים מוצפנים, השרת מחזיר שגיאה ולא נתונים משובשים.
 
 ### הזמנת משתמשים
 

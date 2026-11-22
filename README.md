@@ -45,6 +45,7 @@ In this version **the server enforces every rule**, and the database itself make
 - **Made for phones:** works from a 360-pixel-wide screen, with a bottom menu and large touch targets.
 - **Installable:** you can add it to your phone's home screen like an app.
 - **Currency aware:** every office and booking has a currency (Israeli shekel by default), and the symbol matches the language.
+- **Works with AI assistants:** connect Claude, ChatGPT or another assistant that supports MCP, and ask it in plain words to find a free office, book it, or list and cancel your bookings. You choose on a consent screen what it may do (for example, your clients' names only, not their phone numbers), and you can disconnect it at any time under *Connected apps*. Admins can also let it manage bookings, offices and branding. The assistant follows exactly the same rules as the site.
 
 ---
 
@@ -70,7 +71,7 @@ The project has two independent parts that talk to each other over the internet.
 | **Website** | Everything you see and tap | **React** with **TypeScript**, plain **CSS**, turned by **Vite** into ready-made files any web host can serve. The only outside libraries in the browser are React and React DOM. |
 | **Server (API)** | Stores data, checks every rule, handles sign-in | **C#** on **ASP.NET Core 8** (Microsoft's web platform) |
 | **Database** | Keeps offices, users, bookings, clients and terms | **MongoDB** |
-| **Automated tests** | Prove the rules hold, for example no double bookings and no admin pages for regular users | **C#** (xUnit, 71 tests against a real database) and **JavaScript** (Playwright, which clicks through the site on a phone-sized screen in both languages) |
+| **Automated tests** | Prove the rules hold, for example no double bookings and no admin pages for regular users | **C#** (xUnit, 126 tests against a real database) and **JavaScript** (Playwright, which clicks through the site on a phone-sized screen in both languages) |
 | **Packaging** | Bundles the server so any cloud can run it | **Docker** |
 
 ### Where it runs
@@ -92,6 +93,8 @@ A monthly budget alert and a limit on the number of server copies keep a mistake
 - The server checks every request again, including who is an admin. It doesn't trust what the browser says.
 - Your own client list is private to you. The terms of use say plainly that your sign-up details also go to the admins' client list (clause 8.7).
 - Marketing messages will go only to people who explicitly agreed, and they can withdraw at any time.
+- Phone numbers, client emails and notes can be stored encrypted in the database, with the key kept in Google's key service, so a stolen copy of the database does not reveal them.
+- An AI assistant gets in only after you approve it, only with the permissions you ticked, with short-lived encrypted tokens; every action it takes is logged, and the owner can switch the feature off in seconds.
 - The privacy policy lists every kind of personal data the site stores.
 
 ---

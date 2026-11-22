@@ -101,6 +101,10 @@ export default function MyBookings({ params }: PageProps) {
                     )} />
                 ))}
         </div>
+        {/* Plan 011: AI assistants connected to this account. */}
+        <Link className="small center row" style={{ justifyContent: "center", "--gap": "6px", minHeight: "44px" }} href="/ConnectedApps">
+          <Icon name="link" className="sm" />{t("connectedApps")}
+        </Link>
       </div>
     </>
   );

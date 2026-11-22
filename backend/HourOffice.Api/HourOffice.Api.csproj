@@ -10,7 +10,13 @@
     <PackageReference Include="AWSSDK.S3" Version="4.1.0" />
     <PackageReference Include="Google.Apis.Auth" Version="1.78.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.34" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.4.0" />
     <PackageReference Include="MongoDB.Driver" Version="3.14.0" />
+    <PackageReference Include="MongoDB.Driver.Encryption" Version="3.14.0" />
+    <PackageReference Include="OpenIddict.MongoDb" Version="7.9.0" />
+    <PackageReference Include="OpenIddict.Server.AspNetCore" Version="7.9.0" />
+    <PackageReference Include="OpenIddict.Validation.AspNetCore" Version="7.9.0" />
+    <PackageReference Include="OpenIddict.Validation.ServerIntegration" Version="7.9.0" />
   </ItemGroup>
 
   <ItemGroup>

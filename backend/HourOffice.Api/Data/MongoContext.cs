@@ -4,6 +4,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
+using MongoDB.Driver.Encryption;
 
 namespace HourOffice.Api.Data;
 
@@ -11,6 +12,7 @@ public sealed class MongoContext
 {
     private static int _conventionsRegistered;
 
+    public IMongoClient Client { get; }
     public IMongoDatabase Database { get; }
     public IMongoCollection<User> Users => Database.GetCollection<User>("users");
     public IMongoCollection<Office> Offices => Database.GetCollection<Office>("offices");
@@ -20,6 +22,14 @@ public sealed class MongoContext
     public IMongoCollection<RefreshToken> RefreshTokens => Database.GetCollection<RefreshToken>("refreshTokens");
     public IMongoCollection<Client> Clients => Database.GetCollection<Client>("clients");
     public IMongoCollection<DistributionList> DistributionLists => Database.GetCollection<DistributionList>("distributionLists");
+    public IMongoCollection<McpConsentRequest> McpConsents => Database.GetCollection<McpConsentRequest>("mcpConsents");
+    public IMongoCollection<McpAuditEntry> McpAudit => Database.GetCollection<McpAuditEntry>("mcpAuditLog");
+
+    /// <summary>OpenIddict's own collections (plan 011). Their documents use OpenIddict's snake_case names.</summary>
+    public const string OAuthApplications = "oauthApplications";
+    public const string OAuthAuthorizations = "oauthAuthorizations";
+    public const string OAuthScopes = "oauthScopes";
+    public const string OAuthTokens = "oauthTokens";
 
     public MongoContext(IOptions<MongoOptions> options)
     {
@@ -27,7 +37,9 @@ public sealed class MongoContext
         var o = options.Value;
         if (string.IsNullOrWhiteSpace(o.ConnectionString))
             throw new InvalidOperationException("Mongo:ConnectionString is not configured (env var Mongo__ConnectionString).");
-        Database = new MongoClient(o.ConnectionString).GetDatabase(o.Database);
+        var settings = MongoClientSettings.FromConnectionString(o.ConnectionString);
+        Client = new MongoClient(settings);
+        Database = Client.GetDatabase(o.Database);
     }
 
     private static void RegisterConventions()
@@ -37,8 +49,11 @@ public sealed class MongoContext
         {
             new CamelCaseElementNameConvention(),
             new IgnoreExtraElementsConvention(true),
-        }, _ => true);
+        }, t => t.Namespace?.StartsWith("HourOffice", StringComparison.Ordinal) == true);
+        // Only our own types: OpenIddict's documents keep the element names its store expects.
         BsonSerializer.TryRegisterSerializer(new DecimalSerializer(BsonType.Decimal128));
+        // Field-level encryption (plan 011, E3) needs the driver's encryption extension (libmongocrypt).
+        MongoClientSettings.Extensions.AddAutoEncryption();
     }
 
     public async Task EnsureIndexesAsync(CancellationToken ct = default)
@@ -87,10 +102,49 @@ public sealed class MongoContext
         await DistributionLists.Indexes.CreateOneAsync(new CreateIndexModel<DistributionList>(
             Builders<DistributionList>.IndexKeys.Ascending(l => l.UserId).Ascending(l => l.Name)), cancellationToken: ct);
 
+        // MCP (plan 011): pending consent requests and the audit log clean themselves up.
+        await McpConsents.Indexes.CreateOneAsync(new CreateIndexModel<McpConsentRequest>(
+            Builders<McpConsentRequest>.IndexKeys.Ascending(c => c.ExpiresAt), new CreateIndexOptions { ExpireAfter = TimeSpan.Zero }),
+            cancellationToken: ct);
+        await McpAudit.Indexes.CreateManyAsync(new[]
+        {
+            new CreateIndexModel<McpAuditEntry>(Builders<McpAuditEntry>.IndexKeys.Ascending(a => a.UserId).Descending(a => a.At)),
+            new CreateIndexModel<McpAuditEntry>(Builders<McpAuditEntry>.IndexKeys.Ascending(a => a.ExpiresAt),
+                new CreateIndexOptions { ExpireAfter = TimeSpan.Zero }),
+        }, ct);
+        await EnsureOAuthIndexesAsync(ct);
+
         await RefreshTokens.Indexes.CreateManyAsync(new[]
         {
             new CreateIndexModel<RefreshToken>(Builders<RefreshToken>.IndexKeys.Ascending(t => t.TokenHash), new CreateIndexOptions { Unique = true }),
             new CreateIndexModel<RefreshToken>(Builders<RefreshToken>.IndexKeys.Ascending(t => t.ExpiresAt), new CreateIndexOptions { ExpireAfter = TimeSpan.Zero }),
+        }, ct);
+    }
+
+    /// <summary>OpenIddict's MongoDB store does not create indexes itself. Field names are OpenIddict's.</summary>
+    private async Task EnsureOAuthIndexesAsync(CancellationToken ct)
+    {
+        var keys = Builders<BsonDocument>.IndexKeys;
+        await Database.GetCollection<BsonDocument>(OAuthApplications).Indexes.CreateOneAsync(
+            new CreateIndexModel<BsonDocument>(keys.Ascending("client_id"), new CreateIndexOptions { Unique = true }),
+            cancellationToken: ct);
+        await Database.GetCollection<BsonDocument>(OAuthScopes).Indexes.CreateOneAsync(
+            new CreateIndexModel<BsonDocument>(keys.Ascending("name"), new CreateIndexOptions { Unique = true }),
+            cancellationToken: ct);
+        await Database.GetCollection<BsonDocument>(OAuthAuthorizations).Indexes.CreateOneAsync(
+            new CreateIndexModel<BsonDocument>(keys.Ascending("subject").Ascending("application_id").Ascending("status")),
+            cancellationToken: ct);
+        await Database.GetCollection<BsonDocument>(OAuthTokens).Indexes.CreateManyAsync(new[]
+        {
+            new CreateIndexModel<BsonDocument>(keys.Ascending("authorization_id")),
+            new CreateIndexModel<BsonDocument>(keys.Ascending("subject").Ascending("application_id").Ascending("status")),
+            new CreateIndexModel<BsonDocument>(keys.Ascending("reference_id"), new CreateIndexOptions<BsonDocument>
+            {
+                Unique = true,
+                PartialFilterExpression = Builders<BsonDocument>.Filter.Type("reference_id", BsonType.String),
+            }),
+            // Expired tokens are deleted by MongoDB.
+            new CreateIndexModel<BsonDocument>(keys.Ascending("expiration_date"), new CreateIndexOptions { ExpireAfter = TimeSpan.Zero }),
         }, ct);
     }
 

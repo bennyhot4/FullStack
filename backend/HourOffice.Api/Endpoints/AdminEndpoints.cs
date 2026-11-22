@@ -1,4 +1,3 @@
-using System.Globalization;
 using HourOffice.Api.Data;
 using HourOffice.Api.Services;
 using MongoDB.Driver;
@@ -11,12 +10,7 @@ public static class AdminEndpoints
     {
         var users = app.MapGroup("/api/admin/users").RequireAdmin();
 
-        users.MapGet("", async (MongoContext db, CancellationToken ct) =>
-        {
-            var version = await TermsEndpoints.CurrentVersionAsync(db, ct);
-            var list = await db.Users.Find(FilterDefinition<User>.Empty).SortByDescending(u => u.CreatedAt).ToListAsync(ct);
-            return Results.Ok(list.Select(u => UserDto.From(u, version)));
-        });
+        users.MapGet("", async (AdminQueryService q, CancellationToken ct) => Results.Ok(await q.UsersAsync(ct)));
 
         // No email is sent: the record waits until the person signs in with Google using this address.
         users.MapPost("/invite", async (InviteUserRequest req, MongoContext db, TimeProvider clock, CancellationToken ct) =>
@@ -104,59 +98,15 @@ public static class AdminEndpoints
                 await db.Clients.DeleteManyAsync(c => c.SourceUserId == id, ct);
             }
             await tokens.RevokeAllForUserAsync(id, ct);
+            await Mcp.ConnectedAppsEndpoints.RevokeAllForUserAsync(db, id, ct);
             return Results.NoContent();
         });
 
-        users.MapGet("/{id}/bookings", async (string id, MongoContext db, BookingRules rules, CancellationToken ct) =>
-        {
-            if (!Api.IsObjectId(id)) return Api.NotFound("user_not_found");
-            var list = await db.Bookings.Find(b => b.UserId == id).ToListAsync(ct);
-            return Results.Ok(list.OrderByDescending(b => b.Date, StringComparer.Ordinal)
-                .ThenByDescending(b => b.StartTime, StringComparer.Ordinal).Select(b => BookingDto.From(b, rules)));
-        });
+        users.MapGet("/{id}/bookings", async (string id, BookingService svc, CancellationToken ct) =>
+            Api.IsObjectId(id) ? Results.Ok(await svc.UserBookingsAsync(id, ct)) : Api.NotFound("user_not_found"));
 
         // Week starts on Monday. Only confirmed (incl. completed) bookings count; admins are excluded from the per-user list.
-        app.MapGroup("/api/admin/analytics").RequireAdmin().MapGet("", async (string? period, MongoContext db,
-            BookingRules rules, CancellationToken ct) =>
-        {
-            var today = rules.Today;
-            DateOnly from, to;
-            if (period == "month")
-            {
-                from = new DateOnly(today.Year, today.Month, 1);
-                to = from.AddMonths(1).AddDays(-1);
-            }
-            else
-            {
-                var offset = ((int)today.DayOfWeek + 6) % 7;
-                from = today.AddDays(-offset);
-                to = from.AddDays(6);
-            }
-            string F(DateOnly d) => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-            var (fs, ts) = (F(from), F(to));
-
-            var bookings = await db.Bookings.Find(b => b.Status == BookingStatus.Confirmed
-                && b.Date.CompareTo(fs) >= 0 && b.Date.CompareTo(ts) <= 0).ToListAsync(ct);
-            var users = await db.Users.Find(u => u.Role != Roles.Admin).ToListAsync(ct);
-            var byUser = users.Select(u =>
-            {
-                var mine = bookings.Where(b => b.UserId == u.Id).ToList();
-                return new
-                {
-                    userId = u.Id, fullName = u.FullName, email = u.Email,
-                    bookings = mine.Count, hours = mine.Sum(b => b.DurationHours), spent = mine.Sum(b => b.TotalPrice),
-                };
-            }).Where(x => x.bookings > 0).OrderByDescending(x => x.hours).ThenByDescending(x => x.spent).ToList();
-
-            return Results.Ok(new
-            {
-                period = period == "month" ? "month" : "week",
-                from = fs, to = ts,
-                totalBookings = bookings.Count,
-                totalHours = bookings.Sum(b => b.DurationHours),
-                revenue = bookings.Sum(b => b.TotalPrice),
-                byUser,
-            });
-        });
+        app.MapGroup("/api/admin/analytics").RequireAdmin().MapGet("", async (string? period, AdminQueryService q,
+            CancellationToken ct) => Results.Ok(await q.AnalyticsAsync(period, ct)));
     }
 }

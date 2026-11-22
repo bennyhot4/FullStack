@@ -11,6 +11,9 @@ namespace HourOffice.Api.Services;
 
 public sealed record AuthTokens(string AccessToken, string RefreshToken, DateTime AccessTokenExpiresAt);
 
+/// <summary>A consumed refresh token: whose it was and when that session signed in with Google.</summary>
+public sealed record RefreshedSession(string UserId, DateTime? AuthTime);
+
 /// <summary>Issues short-lived JWT access tokens and rotating opaque refresh tokens (stored hashed).</summary>
 public sealed class TokenService(IOptions<AuthOptions> options, MongoContext db, TimeProvider clock)
 {
@@ -23,19 +26,27 @@ public sealed class TokenService(IOptions<AuthOptions> options, MongoContext db,
         return new SymmetricSecurityKey(Encoding.UTF8.GetBytes(o.JwtSigningKey));
     }
 
-    public async Task<AuthTokens> IssueAsync(User user, CancellationToken ct = default)
+    /// <summary>The claim with the time this session signed in (seconds since 1970). A refresh keeps the original
+    /// value, so "signed in recently" means this session, not some other sign-in of the account (plan 011, S1).</summary>
+    public const string AuthTimeClaim = "auth_time";
+
+    public async Task<AuthTokens> IssueAsync(User user, DateTime? authTime, CancellationToken ct = default)
     {
         var now = clock.GetUtcNow().UtcDateTime;
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, user.Id),
+            new(JwtRegisteredClaimNames.Email, user.Email),
+            new("role", user.Role),
+        };
+        if (authTime is { } at)
+            claims.Add(new Claim(AuthTimeClaim, new DateTimeOffset(at, TimeSpan.Zero).ToUnixTimeSeconds().ToString(),
+                ClaimValueTypes.Integer64));
         var expires = now.AddMinutes(_o.AccessTokenMinutes);
         var jwt = new JwtSecurityToken(
             issuer: _o.JwtIssuer,
             audience: _o.JwtIssuer,
-            claims: new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim("role", user.Role),
-            },
+            claims: claims,
             notBefore: now,
             expires: expires,
             signingCredentials: new SigningCredentials(SigningKey(_o), SecurityAlgorithms.HmacSha256));
@@ -47,20 +58,25 @@ public sealed class TokenService(IOptions<AuthOptions> options, MongoContext db,
             UserId = user.Id,
             TokenHash = Hash(refresh),
             CreatedAt = now,
+            AuthTime = authTime,
             ExpiresAt = now.AddDays(_o.RefreshTokenDays),
         }, cancellationToken: ct);
 
         return new AuthTokens(new JwtSecurityTokenHandler().WriteToken(jwt), refresh, expires);
     }
 
-    /// <summary>Consumes a refresh token (one-time use) and returns its user id, or null if invalid/expired.</summary>
-    public async Task<string?> ConsumeRefreshTokenAsync(string token, CancellationToken ct = default)
+    /// <summary>Consumes a refresh token (one-time use) and returns its session, or null if invalid/expired.</summary>
+    public async Task<RefreshedSession?> ConsumeRefreshTokenAsync(string token, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(token)) return null;
         var stored = await db.RefreshTokens.FindOneAndDeleteAsync(t => t.TokenHash == Hash(token), cancellationToken: ct);
         if (stored is null || stored.ExpiresAt <= clock.GetUtcNow().UtcDateTime) return null;
-        return stored.UserId;
+        return new RefreshedSession(stored.UserId, stored.AuthTime);
     }
+
+    /// <summary>When the session behind this request signed in, from its access token; null if unknown.</summary>
+    public static DateTime? AuthTimeOf(ClaimsPrincipal p) =>
+        long.TryParse(p.FindFirstValue(AuthTimeClaim), out var s) ? DateTimeOffset.FromUnixTimeSeconds(s).UtcDateTime : null;
 
     public Task RevokeAsync(string token, CancellationToken ct = default) =>
         db.RefreshTokens.DeleteOneAsync(t => t.TokenHash == Hash(token), ct);

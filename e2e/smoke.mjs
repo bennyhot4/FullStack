@@ -287,6 +287,12 @@ await ls.locator(".btn.danger-outline").click();
 await admin.locator("dialog.sheet .btn.danger").click();
 await admin.waitForSelector("text=אין רשימות תפוצה עדיין");
 
+step = "connected apps (plan 011)";
+await dana.goto(`${WEB}/ConnectedApps`);
+await dana.waitForSelector("text=אין אפליקציות מחוברות");
+await shot(dana, "connected-apps");
+await noHorizontalScroll(dana, "ConnectedApps");
+
 step = "regular user blocked from admin";
 await dana.goto(`${WEB}/AdminUsers`);
 await dana.waitForSelector("text=נדרשת הרשאת מנהל");
