@@ -50,7 +50,7 @@ Every plan must contain all nine, in this order:
   by a test or a command.
 
 ## Open Questions and approval
-- Ask every plan question **inside the plan file**, not in chat.
+- Ask every plan question **inside the plan file** and in chat.
 - Make each question easy to answer, and include a recommended answer.
 - Update the plan once answers arrive.
 - Request approval before executing the plan.

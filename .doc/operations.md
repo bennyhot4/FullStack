@@ -91,7 +91,7 @@ cd frontend && npm run typecheck && npm run lint && npm run build   # בדיקו
    ```yaml
    Auth__GoogleClientId: "770124643502-lf7d4908khfgkevsrv9rem99sdv6e2bp.apps.googleusercontent.com"
    Auth__AdminEmails__0: "<האימייל של המנהל>"
-   Auth__AllowOpenSignup: "false"
+   Auth__AllowOpenSignup: "true"
    Cors__AllowedOrigins__0: "https://houroffice.pages.dev"
    Storage__Provider: "S3"
    Storage__S3__ServiceUrl: "https://<cloudflare-account-id>.r2.cloudflarestorage.com"
@@ -146,5 +146,7 @@ gcloud secrets versions add <שם-הסוד> --data-file=-   # מדביקים א�
 - **אתר:** Cloudflare → Workers & Pages → `houroffice` → Deployments → "Rollback to this deployment".
 
 ### הזמנת משתמשים
+
+בפרודקשן ההרשמה פתוחה (`Auth__AllowOpenSignup=true`, מאז 2026-11-22): כל חשבון Google נכנס כמשתמש רגיל, ומנהלים נוספים מקודמים במסך **משתמשים**. אפשר גם להוסיף משתמש מראש (אימייל + תפקיד) כדי שייכנס ישר עם התפקיד הנכון.
 
 `Auth__AllowOpenSignup=false`: רק מי שהמנהל הוסיף במסך **משתמשים** (אימייל + תפקיד) יכול להיכנס. כשהוא נכנס עם Google הוא מקבל את התפקיד שנקבע לו.
