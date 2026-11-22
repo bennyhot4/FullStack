@@ -1,5 +1,5 @@
 # Backend API image. Build from the backend/ folder:  docker build -t houroffice-api backend
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS build
 WORKDIR /src
 COPY HourOffice.Api/HourOffice.Api.csproj HourOffice.Api/
 RUN dotnet restore HourOffice.Api/HourOffice.Api.csproj
