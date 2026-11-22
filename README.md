@@ -36,7 +36,9 @@ In this version **the server enforces every rule**, and the database itself make
 - **Statistics:** see how busy the offices are, by week and by month.
 - **Branding:** change the logo, colors and site name. The whole site updates immediately.
 - **Terms of use:** edit the terms, publish a new version, and see who accepted them and when.
-- **Invite-only option:** the site can be set so only people the owner invited can join. The live site works this way today.
+- **Your renters as clients:** when someone finishes signing up, their name, phone and email are added to every admin's client list automatically, and stay up to date when they change their details. A new admin gets all existing renters right away. Removing a user removes them from these lists too.
+- **Distribution lists:** group clients into named lists (for example, "Morning renters") to reach them later with announcements. For now this is shown to admins only, and nothing is sent yet.
+- **Open or invite-only sign-up:** the site can let anyone with a Google account join, or only people the owner invited. The live site is open to everyone.
 
 ### Everywhere
 - **Two languages:** Hebrew (right-to-left) and English (left-to-right), one tap to switch.
@@ -52,7 +54,8 @@ These features are planned and waiting for development:
 
 - **Late-cancellation warning:** the owner sets a notice period (for example, 24 hours). If a renter cancels with less notice, they see a warning before confirming. The owner sees when each booking was cancelled, and late cancellations get a red mark. *(Approved and scheduled.)*
 - **Calendar invitations and reminders:** when a booking is confirmed, the renter and their client get a calendar invitation by email. A reminder goes out before the meeting, and the renter chooses how long before. If a booking moves or is cancelled, the invitations update automatically. *(Planned.)*
-- **Contact lists for announcements:** new members are added automatically to the owner's client list, and anyone can group their clients into named distribution lists. This prepares the ground for sending announcements later. *(Draft.)*
+- **Sending announcements:** send a message to a distribution list, only to people who agreed to receive marketing messages. The lists and the consent field already exist. *(Future idea.)*
+- **Distribution lists for every user:** the server already supports them for all users. Showing them to renters is a later step. *(Future idea.)*
 - **WhatsApp and SMS reminders:** the client list and the reminder design already leave room for them. *(Future idea.)*
 - **Own web address and Israel-only access:** move to a custom domain and allow visitors from Israel only. *(Future idea.)*
 
@@ -64,10 +67,10 @@ The project has two independent parts that talk to each other over the internet.
 
 | Part | What it does | Built with |
 |---|---|---|
-| **Website** | Everything you see and tap | **React** with **TypeScript**, plain **CSS**, built by **Vite** into static files. Only two runtime libraries (React and React DOM). |
+| **Website** | Everything you see and tap | **React** with **TypeScript**, plain **CSS**, turned by **Vite** into ready-made files any web host can serve. The only outside libraries in the browser are React and React DOM. |
 | **Server (API)** | Stores data, checks every rule, handles sign-in | **C#** on **ASP.NET Core 8** (Microsoft's web platform) |
 | **Database** | Keeps offices, users, bookings, clients and terms | **MongoDB** |
-| **Automated tests** | Prove the rules hold, for example no double bookings and no admin pages for regular users | **C#** (xUnit, 48 tests against a real database) and **JavaScript** (Playwright, which clicks through the site on a phone-sized screen in both languages) |
+| **Automated tests** | Prove the rules hold, for example no double bookings and no admin pages for regular users | **C#** (xUnit, 71 tests against a real database) and **JavaScript** (Playwright, which clicks through the site on a phone-sized screen in both languages) |
 | **Packaging** | Bundles the server so any cloud can run it | **Docker** |
 
 ### Where it runs
@@ -87,7 +90,8 @@ A monthly budget alert and a limit on the number of server copies keep a mistake
 ### Security and privacy in short
 - Nobody has a password on the site, so there are no passwords to leak.
 - The server checks every request again, including who is an admin. It doesn't trust what the browser says.
-- Your client list is private to you.
+- Your own client list is private to you. The terms of use say plainly that your sign-up details also go to the admins' client list (clause 8.7).
+- Marketing messages will go only to people who explicitly agreed, and they can withdraw at any time.
 - The privacy policy lists every kind of personal data the site stores.
 
 ---
