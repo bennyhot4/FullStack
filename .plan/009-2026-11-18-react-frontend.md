@@ -1,8 +1,8 @@
 # Rebuild the site (client) in React
 
-Status: active
+Status: done
 Owner: bennyhot4
-Last updated: 2026-11-18
+Last updated: 2026-11-22
 
 ## Goal
 Move `frontend/` from vanilla ES modules (no build) to **React** with a build step, with **the same
@@ -165,6 +165,17 @@ plan 004's deploy job are still open. Decisions taken while implementing:
 - Plan 008 (merged to the trunk while this was open) is ported: `/DistributionLists` page, the
   "registered user" line in the client sheet, the admin-only entry on `/MyClients`, the hidden marketing
   consent on `/Register`, its i18n keys and types. Its e2e steps pass against the React build.
+- **Step 10, preview (2026-11-22):** built from `1731f25` and deployed with
+  `wrangler pages deploy … --branch=react-preview` → `https://react-preview.houroffice.pages.dev`.
+  - Size: 29 files, 118 KB gzip.
+  - Checked and passing:
+    - deep links return 200;
+    - `/app/*` is served `immutable`, and the shell, `config.js` and `sw.js` are served `no-cache`;
+    - `config.js` points at Cloud Run, and there is no `localhost` in `app/`.
+  - The app cannot load data there: the API's CORS allows only `https://houroffice.pages.dev`. The phone
+    check and the production deploy are planned in `.plan/010-2026-11-22-react-production-deploy.md`.
+- **Production (2026-11-22):** deployment `da9b1fd2` on `https://houroffice.pages.dev`, after the owner's
+  phone check on the preview. Rollback target: `fa3cf2be` (vanilla). Details are in plan 010.
 
 ## Validation
 - [ ] `cd frontend && npm ci && npm run build` succeeds; `npm run typecheck` and `npm run lint` have
