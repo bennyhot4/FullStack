@@ -45,7 +45,7 @@ In scope:
     `google-github-actions/deploy-cloudrun` with the already built image; then smoke-check
     `GET /healthz` on the new URL.
   - `deploy-site-staging` / `deploy-site-production`: write `frontend/config.js` with that
-    environment's `apiBaseUrl`, then `cloudflare/wrangler-action` → `wrangler pages deploy frontend`
+    environment's `apiBaseUrl`, then `cloudflare/wrangler-action` → `npm ci && npm run build` in `frontend/`, then `wrangler pages deploy frontend/dist` (plan 009: write `config.js` into `dist/`)
     (Direct Upload; staging uses `--branch=staging`, prod the production branch).
 - **GitHub settings (manual, documented in the README)** — branch ruleset on the trunk, Environments
   `staging` and `production`, repository variables and secrets listed below.

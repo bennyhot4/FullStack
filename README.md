@@ -1,148 +1,100 @@
 # HourOffice
 
-מערכת להזמנת חדרים/משרדים לפי שעה. בנייה מחדש של האפליקציה מ-Base44.
+**Book an office or a meeting room by the hour, straight from your phone.**
 
-- **תוכנית מלאה:** [docs/PLAN.md](docs/PLAN.md)
-- **Backend:** ASP.NET Core 8 (C#) + MongoDB – תיקיית [`backend/`](backend)
-- **Frontend:** HTML + JavaScript בלי framework ובלי build – תיקיית [`frontend/`](frontend)
-- שני החלקים **נפרדים לגמרי** ונפרסים בנפרד (כל אחד אפשר להחליף לספק אחר).
+HourOffice is a booking website for a business that rents out offices and meeting rooms by the hour. Renters see what is free and book in a few taps. The owner runs everything (offices, people, bookings, branding and terms of use) from the same site, without a developer.
 
-```
-backend/
-  HourOffice.Api/        ה-API (Program.cs, Endpoints/, Services/, Data/, Seed/ = תקנון התחלתי)
-  HourOffice.Tests/      37 בדיקות אינטגרציה מול MongoDB אמיתי
-  Dockerfile
-frontend/
-  index.html, config.js  ← כתובת ה-API נקבעת כאן בלבד
-  css/, js/app.js (ניתוב + הרשאות), js/pages/ (מסך לכל עמוד), js/components/
-  dev-server.mjs         שרת מקומי לפיתוח
-e2e/smoke.mjs            בדיקת דפדפן מקצה לקצה בגודל טלפון
-```
+It works in Hebrew and English and is designed for phones first.
 
-## הרצה מקומית
+🌐 **Live site:** https://houroffice.pages.dev
 
-דרישות: .NET 8 SDK, Node 22, ו-MongoDB מקומי (למשל `docker run -d -p 27017:27017 mongo:7`).
+---
 
-```bash
-# 1. API על http://localhost:5080 (סביבת Development: כניסת מפתחים עם אימייל בלבד, admin@example.com הוא מנהל)
-cd backend/HourOffice.Api
-ASPNETCORE_ENVIRONMENT=Development dotnet run --no-launch-profile --urls http://localhost:5080
+## Why it was built
 
-# 2. אתר על http://localhost:5500
-cd frontend
-node dev-server.mjs 5500
-```
+HourOffice is a rebuild of an earlier version of the app made with Base44, a no-code tool. That version checked every rule (opening hours, overlapping bookings, how far ahead you may book) only inside the visitor's browser. Two people could book the same hour, and anyone who knew how could skip the rules.
 
-נכנסים ל-http://localhost:5500, מתחברים עם `admin@example.com` בטופס "כניסת מפתחים", ממלאים פרופיל וחותמים על התקנון.
+In this version **the server enforces every rule**, and the database itself makes a double booking impossible, even if two people press "Book" at the same moment.
 
-## בדיקות
+---
 
-```bash
-cd backend && dotnet test                     # 37 בדיקות; מפעילות mongod זמני בעצמן, לא צריך MongoDB מותקן
-NODE_PATH=$(npm root -g) node e2e/smoke.mjs   # דורש API + אתר רצים מול מסד נתונים ריק, ו-Playwright מותקן
-```
+## What you can do
 
-## הגדרות ה-API (משתני סביבה)
+### As a renter
+- **Sign in with your Google account.** You don't need a password and you won't get any emails from the site.
+- **Quick first-time setup:** add your phone number and accept the terms of use. When the terms change, you're asked to accept the new version.
+- **Browse offices** with photos, a description and the hourly price. Announcements from the owner appear as banners on the home page.
+- **Book an office:** pick a day and the hours you need, and see what is free right away. You can book between 08:00 and 22:00, up to 14 days ahead.
+- **My bookings:** see upcoming and past bookings, cancel one, and filter them by client.
+- **My clients:** keep a private list of your own clients, with up to two phone numbers and two email addresses each. Attach a client to a booking so you remember who the meeting was for. Only you can see this list. The site owner can't.
+- **Public pages:** anyone can read the terms of use and the privacy policy, even without signing in.
 
-| משתנה | חובה | תיאור |
+### As the site owner (admin)
+- **Offices:** add, edit and remove offices and upload photos. Manage the home-page banners.
+- **People:** invite someone by entering their email and choosing a role. When they sign in with Google, they get that role automatically. You can also change roles, edit details or remove a user. Removing a user also removes their bookings and clients.
+- **Bookings:** see every booking, edit or cancel any of them, and create **recurring bookings** (for example, every Monday for two months). Hours that are already taken are skipped, and the site tells you how many bookings it created and how many it skipped.
+- **Statistics:** see how busy the offices are, by week and by month.
+- **Branding:** change the logo, colors and site name. The whole site updates immediately.
+- **Terms of use:** edit the terms, publish a new version, and see who accepted them and when.
+- **Invite-only option:** the site can be set so only people the owner invited can join. The live site works this way today.
+
+### Everywhere
+- **Two languages:** Hebrew (right-to-left) and English (left-to-right), one tap to switch.
+- **Made for phones:** works from a 360-pixel-wide screen, with a bottom menu and large touch targets.
+- **Installable:** you can add it to your phone's home screen like an app.
+- **Currency aware:** every office and booking has a currency (Israeli shekel by default), and the symbol matches the language.
+
+---
+
+## Coming next
+
+These features are planned and waiting for development:
+
+- **Late-cancellation warning:** the owner sets a notice period (for example, 24 hours). If a renter cancels with less notice, they see a warning before confirming. The owner sees when each booking was cancelled, and late cancellations get a red mark. *(Approved and scheduled.)*
+- **Calendar invitations and reminders:** when a booking is confirmed, the renter and their client get a calendar invitation by email. A reminder goes out before the meeting, and the renter chooses how long before. If a booking moves or is cancelled, the invitations update automatically. *(Planned.)*
+- **Contact lists for announcements:** new members are added automatically to the owner's client list, and anyone can group their clients into named distribution lists. This prepares the ground for sending announcements later. *(Draft.)*
+- **WhatsApp and SMS reminders:** the client list and the reminder design already leave room for them. *(Future idea.)*
+- **Own web address and Israel-only access:** move to a custom domain and allow visitors from Israel only. *(Future idea.)*
+
+---
+
+## How it is built
+
+The project has two independent parts that talk to each other over the internet. Either part can move to a different hosting provider without changing the other.
+
+| Part | What it does | Built with |
 |---|---|---|
-| `Mongo__ConnectionString` | ✔ | מחרוזת החיבור ל-Atlas. **סוד** – רק ב-Secret Manager של ספק הפריסה |
-| `Mongo__Database` | | ברירת מחדל `houroffice` |
-| `Auth__JwtSigningKey` | ✔ | מחרוזת אקראית של 32+ תווים. **סוד** |
-| `Auth__GoogleClientId` | ✔ | OAuth Client ID מ-Google Cloud Console |
-| `Auth__AdminEmails__0` | ✔ | האימייל שיהיה מנהל בכניסה הראשונה (אפשר `__1`, `__2`...) |
-| `Auth__AllowOpenSignup` | | `true` (ברירת מחדל): כל חשבון Google יכול להירשם. `false`: רק מי שמנהל הוסיף |
-| `Cors__AllowedOrigins__0` | ✔ | כתובת האתר, למשל `https://houroffice.pages.dev` |
-| `Storage__Provider` | | `Local` (פיתוח) או `S3` (ייצור – Cloudflare R2) + `Storage__S3__*` |
-| `Booking__*`, `Currency__*` | | שעות פתיחה, ימים קדימה, אזור זמן, סמלי מטבע לפי שפה |
+| **Website** | Everything you see and tap | **React** with **TypeScript**, plain **CSS**, built by **Vite** into static files. Only two runtime libraries (React and React DOM). |
+| **Server (API)** | Stores data, checks every rule, handles sign-in | **C#** on **ASP.NET Core 8** (Microsoft's web platform) |
+| **Database** | Keeps offices, users, bookings, clients and terms | **MongoDB** |
+| **Automated tests** | Prove the rules hold, for example no double bookings and no admin pages for regular users | **C#** (xUnit, 48 tests against a real database) and **JavaScript** (Playwright, which clicks through the site on a phone-sized screen in both languages) |
+| **Packaging** | Bundles the server so any cloud can run it | **Docker** |
 
-כניסת המפתחים (`Auth__DevLoginEnabled`) **לא פועלת בסביבת Production** גם אם מופעלת בטעות.
+### Where it runs
+Everything runs on the free tiers of well-known cloud providers, so it costs about **$0 a month** at this size:
 
-## Google Sign-In
+| Part | Hosted on |
+|---|---|
+| Website | Cloudflare Pages |
+| Server | Google Cloud Run. It sleeps when nobody is using it and wakes on the first visit. |
+| Office photos | Cloudflare R2 storage |
+| Database | MongoDB Atlas |
+| Passwords and keys | Google Secret Manager. They never appear in the code. |
+| Sign-in | Google Sign-In |
 
-1. https://console.cloud.google.com → APIs & Services → Credentials → Create OAuth client ID → Web application.
-2. **Authorized JavaScript origins:** כתובת האתר (ו-`http://localhost:5500` לפיתוח).
-3. את ה-Client ID שמים ב-`Auth__GoogleClientId` של ה-API. האתר מקבל אותו אוטומטית מ-`/api/settings/public`.
+A monthly budget alert and a limit on the number of server copies keep a mistake from turning into a surprise bill.
 
-## פריסה
+### Security and privacy in short
+- Nobody has a password on the site, so there are no passwords to leak.
+- The server checks every request again, including who is an admin. It doesn't trust what the browser says.
+- Your client list is private to you.
+- The privacy policy lists every kind of personal data the site stores.
 
-האתר באוויר בעלות של כ-$0 לחודש (כל השירותים בשכבה החינמית). ההחלטות וההיסטוריה: [`.plan/006-2026-11-17-low-cost-deployment.md`](.plan/006-2026-11-17-low-cost-deployment.md).
-**אין כאן אף ערך סודי** – רק שמות. מחרוזת Atlas, מפתח ה-JWT ומפתחות R2 נמצאים רק ב-Secret Manager.
+---
 
-### מה רץ איפה
+## For developers
 
-| חלק | שירות | שם / כתובת |
-|---|---|---|
-| API | Google Cloud Run, `europe-west1`, scale to zero, עד 2 מופעים | פרויקט `houroffice-prod`, שירות `houroffice-api` → `https://houroffice-api-770124643502.europe-west1.run.app` |
-| אתר | Cloudflare Pages (Direct Upload) | פרויקט `houroffice` → `https://houroffice.pages.dev` |
-| תמונות | Cloudflare R2 | באקט `houroffice-uploads`, כתובת ציבורית `https://pub-5c470ba18f4f4b59b37e8f7f9c9779aa.r2.dev` |
-| מסד נתונים | MongoDB Atlas M0, GCP בלגיה | קלאסטר `BookingDB`, מסד `houroffice`, משתמש `houroffice-prod` (`readWrite@houroffice` בלבד) |
-| סודות | Google Secret Manager | `mongo-connection-string`, `jwt-signing-key`, `r2-access-key-id`, `r2-secret-key` |
-| כניסה | Google Auth Platform | לקוח Web "HourOffice web", סטטוס "In production" |
-| תקציב | Google Billing | ₪20 לחודש על `houroffice-prod`, התראות 50/90/100% |
-
-ה-API רץ כ-service account ייעודי `houroffice-api@houroffice-prod.iam.gserviceaccount.com` שיש לו רק `secretAccessor` על ארבעת הסודות.
-
-### עדכון ה-API
-
-דרישות: Google Cloud CLI מחובר (`gcloud auth login`), עם ברירות מחדל `core/project=houroffice-prod` ו-`run/region=europe-west1`. לא צריך Docker – הבנייה רצה ב-Cloud Build, ו-`backend/.gcloudignore` מונע העלאה של `bin/`, `obj/` והבדיקות.
-
-1. קובץ משתני הסביבה הרגילים (לא סודות) – שמרו אותו **מחוץ לריפו**, למשל `env.prod.yaml`:
-   ```yaml
-   Auth__GoogleClientId: "770124643502-lf7d4908khfgkevsrv9rem99sdv6e2bp.apps.googleusercontent.com"
-   Auth__AdminEmails__0: "<האימייל של המנהל>"
-   Auth__AllowOpenSignup: "true"
-   Cors__AllowedOrigins__0: "https://houroffice.pages.dev"
-   Storage__Provider: "S3"
-   Storage__S3__ServiceUrl: "https://<cloudflare-account-id>.r2.cloudflarestorage.com"
-   Storage__S3__Bucket: "houroffice-uploads"
-   Storage__S3__PublicBaseUrl: "https://pub-5c470ba18f4f4b59b37e8f7f9c9779aa.r2.dev"
-   ```
-2. פריסה משורש הריפו:
-   ```bash
-   gcloud run deploy houroffice-api --source backend --region europe-west1 --allow-unauthenticated --service-account houroffice-api@houroffice-prod.iam.gserviceaccount.com --max-instances 2 --min-instances 0 --cpu-boost --memory 512Mi --cpu 1 --env-vars-file env.prod.yaml --set-secrets Mongo__ConnectionString=mongo-connection-string:latest,Auth__JwtSigningKey=jwt-signing-key:latest,Storage__S3__AccessKey=r2-access-key-id:latest,Storage__S3__SecretKey=r2-secret-key:latest
-   ```
-3. בדיקה:
-   ```bash
-   curl --fail https://houroffice-api-770124643502.europe-west1.run.app/api/settings/public
-   ```
-   ⚠️ **לא `/healthz`:** ב-`*.run.app` גוגל שומרת לעצמה נתיבים שנגמרים ב-`z` ומחזירה 404 לפני שהבקשה מגיעה ל-API.
-
-ב-Artifact Registry (`cloud-run-source-deploy`) יש מדיניות ניקוי ששומרת את 2 האימג'ים האחרונים, כך שלא חורגים מ-0.5GB החינמיים.
-
-### עדכון האתר
-
-ה-`config.js` בריפו מצביע על localhost ונשאר כך. בכל פריסה מעתיקים את `frontend/` לתיקייה זמנית (בלי `dev-server.mjs`), כותבים בה `config.js` של ייצור ומעלים:
-
-```js
-// config.js בעותק לפריסה בלבד
-window.HOUROFFICE_CONFIG = { apiBaseUrl: "https://houroffice-api-770124643502.europe-west1.run.app" };
-```
-```bash
-npx wrangler@4 pages deploy <התיקייה-הזמנית> --project-name=houroffice --branch=main
-```
-
-בדיקה: `https://houroffice.pages.dev` מציג את כפתור Google, וגם כתובת עמוקה כמו `/MyBookings` נטענת (בזכות `_redirects`). בפריסה הראשונה של כתובת חדשה Cloudflare יכול להחזיר 522 לכמה שניות.
-
-### החלפת סוד
-
-```bash
-gcloud secrets versions add <שם-הסוד> --data-file=-   # מדביקים את הערך ב-stdin, לא בפקודה ולא בקובץ
-```
-אחר כך מריצים שוב את פקודת הפריסה של ה-API (הסודות נקראים ב-`:latest` רק בעליית מופע חדש), ומבטלים את הגרסה הקודמת: `gcloud secrets versions disable <מספר> --secret=<שם-הסוד>`.
-
-### Windows
-
-- `gcloud` ו-`npx` הם קובצי `.cmd`: ב-PowerShell משתמשים ב-`npx.cmd` (מדיניות ההרצה חוסמת את `npx.ps1`).
-- `.cmd` נשבר על `|` ועל ארגומנטים עם רווחים: לכן משתני הסביבה ב-`--env-vars-file`, ול-wrangler מעבירים `--name=value` בלי רווחים (שימו את התיקייה הזמנית בנתיב בלי רווחים).
-
-### החזרה לאחור
-
-- **API:** `gcloud run services update-traffic houroffice-api --to-revisions=<revision-קודמת>=100` (מיידי). רשימת revisions: `gcloud run revisions list --service houroffice-api`.
-- **אתר:** Cloudflare → Workers & Pages → `houroffice` → Deployments → "Rollback to this deployment".
-
-### הזמנת משתמשים
-
-בפרודקשן ההרשמה פתוחה (`Auth__AllowOpenSignup=true`, מאז 2026-11-22): כל חשבון Google נכנס כמשתמש רגיל, ומנהלים נוספים מקודמים במסך **משתמשים**. אפשר גם להוסיף משתמש מראש (אימייל + תפקיד) כדי שייכנס ישר עם התפקיד הנכון.
-
-`Auth__AllowOpenSignup=false`: רק מי שהמנהל הוסיף במסך **משתמשים** (אימייל + תפקיד) יכול להיכנס. כשהוא נכנס עם Google הוא מקבל את התפקיד שנקבע לו.
+- Local setup, configuration, and the deployment and rollback runbook: [`.doc/operations.md`](.doc/operations.md)
+- Architecture overview: [`.doc/architecture.md`](.doc/architecture.md)
+- Product definition and acceptance criteria: [`.doc/product-definition.md`](.doc/product-definition.md)
+- The original master plan (Hebrew): [`docs/PLAN.md`](docs/PLAN.md). Later decisions are recorded in [`.plan/`](.plan).

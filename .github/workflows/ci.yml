@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    # The working main branch (see .claude/rules/git-workflow.md); "master" is an old default branch.
+    branches: [claude/app-development-plan-imirl7]
   pull_request:
   workflow_dispatch:
 
@@ -34,7 +35,10 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -42,9 +46,17 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
-      # find covers every nesting level (a bare ** glob without globstar only matches one level).
-      - name: Syntax check
-        run: find frontend/js e2e -name '*.js' -o -name '*.mjs' | sort | xargs -n1 node --check
+      # React + TypeScript site built by Vite (plan 009); dependencies pinned by frontend/package-lock.json.
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      # Informational only (plan 009, Q7): raw + gzip size of every file that would be deployed.
+      - name: Size report
+        run: npm run size
+      - name: Syntax check (e2e)
+        working-directory: e2e
+        run: find . -maxdepth 1 -name '*.mjs' | sort | xargs -n1 node --check
 
   docker:
     runs-on: ubuntu-latest
@@ -74,7 +86,13 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
-      # Playwright is pinned by e2e/package-lock.json; frontend/ itself stays dependency-free.
+      # The e2e test runs against the production build of the site, served by `vite preview`.
+      - name: Build site
+        working-directory: frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      # Playwright is pinned by e2e/package-lock.json.
       - name: Install Playwright
         working-directory: e2e
         run: |
@@ -86,7 +104,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/logs"
           (cd backend/HourOffice.Api && ASPNETCORE_ENVIRONMENT=Development nohup dotnet run -c Release --no-build --no-launch-profile --urls http://localhost:5080 > "$RUNNER_TEMP/logs/api.log" 2>&1 &)
-          nohup node frontend/dev-server.mjs 5500 > "$RUNNER_TEMP/logs/web.log" 2>&1 &
+          (cd frontend && nohup npx --no-install vite preview --port 5500 --strictPort > "$RUNNER_TEMP/logs/web.log" 2>&1 &)
           for i in $(seq 1 60); do
             if curl -fsS http://localhost:5080/healthz > /dev/null && curl -fsS http://localhost:5500/ > /dev/null; then echo "ready"; exit 0; fi
             sleep 2

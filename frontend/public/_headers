@@ -1,0 +1,14 @@
+# Cloudflare Pages response headers (plan 009).
+# Hashed build output never changes under the same name, so browsers may keep it for a year.
+/app/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# These must always be revalidated so a deploy is picked up on the next load.
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/config.js
+  Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-cache

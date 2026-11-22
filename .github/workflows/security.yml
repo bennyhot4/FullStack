@@ -2,7 +2,8 @@ name: Security
 
 on:
   push:
-    branches: [master]
+    # The working main branch (see .claude/rules/git-workflow.md); "master" is an old default branch.
+    branches: [claude/app-development-plan-imirl7]
   pull_request:
   schedule:
     - cron: "17 3 * * 1" # weekly, Monday 03:17 UTC

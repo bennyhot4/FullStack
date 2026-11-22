@@ -15,7 +15,7 @@ HourOffice: hourly office/room booking app, a rebuild of an app originally made 
 - **Currency:** every office/booking stores an ISO `currency` (default `ILS`). The display symbol per language (`₪` he / `$` en) comes from server settings.
 - **Secrets:** the MongoDB Atlas connection string only ever lives in env vars (`Mongo__ConnectionString`), never in code or chat.
 
-The README and plan are in Hebrew. UI is bilingual he/en with RTL support.
+The README is a short, non-technical English overview. The plan and `.doc/operations.md` (local setup, env-var table, deployment runbook) are in Hebrew. UI is bilingual he/en with RTL support.
 
 `docs/PLAN.md` is the original master plan and is deliberately **not** updated when a feature changes; per-task plans in `.plan/NNN-*.md` record later decisions (e.g. `.plan/001` removed the home-page search and capacity filter that `docs/PLAN.md` still describes). When they disagree, the newest `.plan/` file and the code win.
 
@@ -25,9 +25,9 @@ Run the API on :5080 (Development: email-only dev login; `admin@example.com` bec
 ```bash
 cd backend/HourOffice.Api && ASPNETCORE_ENVIRONMENT=Development dotnet run --no-launch-profile --urls http://localhost:5080
 ```
-Run the frontend on :5500 (static dev server with SPA fallback):
+Run the frontend on :5500 (Vite dev server with hot reload and SPA fallback; run `npm ci` in `frontend/` once):
 ```bash
-node frontend/dev-server.mjs 5500
+cd frontend && npm run dev
 ```
 `.claude/launch.json` defines both as `api` and `web` for the preview tool. Development expects MongoDB on `mongodb://localhost:27017`, database `houroffice`.
 
@@ -37,7 +37,14 @@ cd backend && dotnet test
 cd backend && dotnet test --filter "FullyQualifiedName~BookingTests"          # one class
 cd backend && dotnet test --filter "FullyQualifiedName~BookingTests.SomeName" # one test
 ```
-Frontend has no build or lint. CI only runs `node --check` on every `frontend/js/**/*.js`.
+Frontend checks (in `frontend/`), the same ones CI runs:
+```bash
+npm run typecheck   # tsc --noEmit (strict)
+npm run lint        # ESLint + react-hooks rules
+npm run build       # Vite -> frontend/dist/ (the folder that is deployed)
+npm run size        # size report of dist/ (informational)
+npx vite preview --port 5500   # serve dist/ (what the e2e test runs against in CI)
+```
 
 E2E smoke (Playwright, phone viewport, he + en). Needs the API and site running against an **empty** database:
 ```bash
@@ -61,7 +68,7 @@ The projects target `net8.0`. A newer SDK builds them fine as long as the .NET 8
 - **Mongo** (`Data/MongoContext.cs`): typed collections `users, offices, bookings, siteSettings, terms, refreshTokens`. A convention pack makes element names **camelCase** and ignores extra elements. Keep that in mind when querying with `mongosh` (`role`, `email`, ...). Models are in `Models.cs`, request/response DTOs in `Endpoints/Dtos.cs`.
 - **Booking rules** (open hours, max days ahead, time zone `Asia/Jerusalem`, recurring limits, slot ranges) all live in `Services/BookingRules.cs`. The server is the source of truth, not the browser. Time always comes from the injected `TimeProvider`; never use `DateTime.Now`/`UtcNow` directly, because tests swap in `FakeClock`.
 - **Storage:** `IFileStorage` is `LocalFileStorage` (served at `/uploads`) or `S3FileStorage` (Cloudflare R2), chosen by `Storage:Provider`.
-- All config is under `Mongo`, `Auth`, `Cors`, `Booking`, `Currency`, `Storage` (see `Options.cs` and `appsettings.json`). In deployment it is set as env vars with `__` (e.g. `Auth__AdminEmails__0`). The README has the full table.
+- All config is under `Mongo`, `Auth`, `Cors`, `Booking`, `Currency`, `Storage` (see `Options.cs` and `appsettings.json`). In deployment it is set as env vars with `__` (e.g. `Auth__AdminEmails__0`). `.doc/operations.md` has the full table.
 
 ## Tests (`backend/HourOffice.Tests`)
 
@@ -69,10 +76,12 @@ The projects target `net8.0`. A newer SDK builds them fine as long as the .NET 8
 
 ## Frontend architecture (`frontend/`)
 
-Vanilla ES modules with no framework and no build step. Paths deliberately match the original app (`/BookOffice?id=`, `/AdminUsers`, ...), and `_redirects` provides the SPA fallback when deployed.
-- `js/app.js`: route table (path → lazy `import()` of `js/pages/*.js` plus flags `public`, `optionalAuth`, `admin`, `nav`, `chrome`). Guards run in order: signed in → profile complete (`needsProfile` → `/Register`) → current terms accepted (`needsTerms` → `/TermsOfUse`) → admin.
-- `js/api.js`: fetch wrapper against `HOUROFFICE_CONFIG.apiBaseUrl`. Adds the bearer token, auto-refreshes on 401 (single in-flight refresh), and throws `ApiError(status, code)`.
-- `js/store.js`: `store.settings` (from `/api/settings/public`: branding, currency, booking hours, Google client id) and `store.me` (from `/api/me`). Branding colors are applied as CSS variables at runtime, so CSS must use the variables rather than hard-coded colors.
-- `js/ui.js`: `h(tag, attrs, ...children)` DOM builder plus shared widgets (`pageHeader`, `openSheet`/`confirmSheet` bottom sheets, `toast`, `errorBox`, `icon`). A page module is `export default async function (el)` that renders into `el` with `h`/`clear`.
-- `js/i18n.js`: every UI string goes through `t(key)`. Keys come from the original app and both `en` and `he` must be filled. Language is stored in localStorage `appLanguage`.
+React 19 + TypeScript (strict), built by Vite into a static SPA (plan `.plan/009`): no SSR, no server runtime, only `react` and `react-dom` at runtime. `public/` is copied as is into `dist/`: `config.js` (runtime config, **not** bundled, so one build serves every environment), `_redirects` (SPA fallback), `_headers` (hashed `/app/*` cached forever, the shell `no-cache`), `sw.js`, manifest, icon. Paths deliberately match the original app (`/BookOffice?id=`, `/AdminUsers`, ...).
+- `src/app.tsx`: route table (path → lazy `import()` of `src/pages/*.tsx` plus flags `public`, `optionalAuth`, `admin`, `nav`, `chrome`). Guards run in order: signed in → profile complete (`needsProfile` → `/Register`) → current terms accepted (`needsTerms` → `/TermsOfUse`) → admin. A page is `export default function Name({ params }: PageProps)` and gets a fresh mount on every navigation and language change.
+- `src/router.tsx`: tiny own router (no dependency): `navigate(to, { replace })`, `useLocation()`, `<Link href>`, `reload()`.
+- `src/api.ts`: fetch wrapper against `HOUROFFICE_CONFIG.apiBaseUrl`. Adds the bearer token, auto-refreshes on 401 (single in-flight refresh), and throws `ApiError(status, code)`. Response types are hand-written in `src/types/api.ts` from `Dtos.cs` — update it in the same PR when a DTO changes.
+- `src/store.ts`: `store.settings` (from `/api/settings/public`: branding, currency, booking hours, Google client id) and `store.me` (from `/api/me`), read with `useStore()` / `settings()` / `me()`. Branding colors are applied as CSS variables at runtime, so CSS must use the variables rather than hard-coded colors.
+- `src/ui/`: shared widgets (`PageHeader`, `Field`, `Icon`, `ErrorBox`, `Empty`, `Skeletons`, `toast`, `openSheet`/`confirmSheet` bottom sheets). Sheets are opened imperatively; each is a native `<dialog class="sheet">` with its own React root. Data loading uses `useAsync()` (`src/useAsync.ts`).
+- `src/i18n.ts`: every UI string goes through `t(key)`; keys are typed, and `he` is typed as `typeof en`, so a missing or misspelled key fails `npm run typecheck`. Keys come from the original app. Language is stored in localStorage `appLanguage`.
+- Class names and DOM structure are what `css/*.css` and `e2e/smoke.mjs` rely on — keep them when changing markup.
 - CSS is mobile-first (360px base, breakpoints at 640/1024px) and uses **logical properties only** (`margin-inline-start`, etc.) so the same CSS works for RTL and LTR. Touch targets are ≥44px, inputs ≥16px font.

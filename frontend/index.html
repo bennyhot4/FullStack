@@ -9,10 +9,9 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/assets/icon.svg">
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/components.css">
+  <!-- Runtime config (not bundled): written per environment at deploy time, see .doc/operations.md. -->
   <script src="/config.js"></script>
-  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="/src/main.tsx"></script>
 </head>
 <body>
   <div id="app" aria-live="polite">
