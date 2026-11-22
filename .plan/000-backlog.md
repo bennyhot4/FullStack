@@ -11,9 +11,8 @@ A task with no `stack:` marker touches both the API and the site.
 Current queue:
 - [ ] Email booking invitations (.ics) on confirm + reminders before the booking, lead time set by admin list / user default / per booking (needs §0 #4 change; after 002) — plan: `.plan/003-2026-11-16-booking-reminders.md`
 - [ ] CI/CD: harden CI (SHA pins, permissions, CodeQL, zizmor, Dependabot), E2E in CI, auto-deploy staging on merge and prod on release tag with approval (Cloud Run + Cloudflare Pages, OIDC) — plan: `.plan/004-2026-11-16-ci-cd-pipeline.md`
-- [ ] Late cancellation: admin sets a cancellation notice (hours); the user is warned when cancelling inside it, and admins see the cancel date/time plus a red X "less than the approved time" — plan: `.plan/005-2026-11-17-late-cancellation.md`
+- [ ] Late cancellation: admin sets a cancellation notice (hours); the user is warned when cancelling inside it, and admins see the cancel date/time plus a red X "less than the approved time" (approved, on hold until the owner says to start) — plan: `.plan/005-2026-11-17-late-cancellation.md`
 - [ ] New users auto-added as a client of each admin (on profile completion) + private distribution lists for every user (API open to all, UI admins-only for now; no sending) + terms clause 8.7 in version 1 (approved, in progress on `feat/distribution-list`) — plan: `.plan/008-2026-11-18-distribution-list.md`
-
 
 ## DONE
 - [x] Private client list per user (2 phones + 2 emails, client on booking, filter My bookings by client, Admin nav menu; groundwork for future WhatsApp reminders) + terms clause 8.6 he/en — plan: `.plan/002-2026-11-16-client-contacts.md`

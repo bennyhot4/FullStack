@@ -1,8 +1,10 @@
 # Late cancellation mark ("less than the approved time")
 
-Status: draft
+Status: active
 Owner: bennyhot4
-Last updated: 2026-11-17
+Last updated: 2026-11-18
+Approved: 2026-11-18. **On hold:** do not create the branch or start work until the owner says
+to start (expected after `feat/client` is merged).
 
 ## Goal
 An admin sets a **cancellation notice** in hours (for example 24). A cancellation is **late** when
