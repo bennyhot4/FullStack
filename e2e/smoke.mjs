@@ -76,7 +76,7 @@ step = "admin menu";
 await admin.click('.bottom-nav a[href="/Admin"]');
 await waitPath(admin, /^\/Admin$/);
 await admin.waitForSelector(".admin-menu a");
-check(await admin.locator(".admin-menu a").count() === 4, "admin menu has 4 links");
+check(await admin.locator(".admin-menu a").count() === 5, "admin menu has 5 links");
 await shot(admin, "admin-menu");
 await noHorizontalScroll(admin, "Admin");
 
