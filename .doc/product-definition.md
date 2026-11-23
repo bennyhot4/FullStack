@@ -68,3 +68,15 @@ Each criterion must be provable by a test or a command. (Source: `docs/PLAN.md` 
   update the copies; deleting the user deletes the copies. No admin sees another user's clients.
 - AC17 — Distribution lists hold only the owner's own clients (another user's client → 404) and are
   readable only by their owner; regular users see no distribution-list entry in the site yet.
+- AC18 — AI assistants (plan 011): `/mcp` without a token → 401 with `resource_metadata`; tokens come only from
+  OAuth authorization code + PKCE S256 after the person approves on `/McpConsent`; a site JWT is refused at `/mcp`
+  and an MCP token is refused at `/api/*`.
+- AC19 — Every MCP tool applies the same rules and error codes as the matching REST route (booking window, slot
+  taken, profile and terms gates, ownership → 404), and `tools/list` shows only tools the person's role and granted
+  scopes allow; a demoted admin loses admin tools on the next call.
+- AC20 — Client phones, emails and notes reach an assistant only with the `clients:full` permission (not ticked by
+  default); disconnecting under Connected apps, the admin "disconnect everyone", or deleting the user ends access on
+  the next call; the admin switch turns `/mcp` and `/oauth/*` off (503).
+- AC21 — With `FieldEncryption:Mode=encrypt`, phones, client emails and notes are stored as encrypted BinData and read
+  back plain through the API; `decrypt` mode restores them; with encryption off, encrypted data is never returned as
+  garbage (the request fails).

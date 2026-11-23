@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { get, put } from "../api";
+import { get, post, put } from "../api";
 import { t } from "../i18n";
-import { applyBranding, loadSettings, settings } from "../store";
-import type { Branding, TermsDoc } from "../types/api";
+import { applyBranding, fmtShortDate, loadSettings, settings } from "../store";
+import type { Branding, McpSettings, TermsDoc } from "../types/api";
 import { useAsync } from "../useAsync";
 import { ImageInput } from "../components/imageInput";
 import { Field, Icon, PageHeader, confirmSheet, errorText, toast } from "../ui";
@@ -43,6 +43,7 @@ export default function SiteSettings() {
           <h2 className="row"><Icon name="file" />{t("editTerms")}</h2>
           <TermsEditor />
         </section>
+        <McpSection />
       </div>
     </>
   );
@@ -113,5 +114,57 @@ function TermsForm({ doc }: { doc: TermsDoc }) {
       <Field label={t("termsEnglish")}><textarea className="textarea" rows={10} dir="ltr" value={en} onChange={(e) => setEn(e.target.value)} /></Field>
       <button className="btn outline" type="button" disabled={saving} onClick={publish}>{t("publishNewVersion")}</button>
     </div>
+  );
+}
+
+// Plan 011: the admin switch for AI assistants, every connection, and "disconnect everyone". The env var
+// Mcp__Enabled on the API is the master switch; this one can only turn it off.
+function McpSection() {
+  const { state, reload } = useAsync(() => get<McpSettings>("/api/admin/settings/mcp"));
+  const [busy, setBusy] = useState(false);
+  const run = async (fn: () => Promise<unknown>, done = t("saved")) => {
+    setBusy(true);
+    try { await fn(); toast(done, "success"); reload(); }
+    catch (e) { toast(errorText(e), "error"); }
+    finally { setBusy(false); }
+  };
+
+  let body;
+  if (state.status === "loading") body = <div className="stack" />;
+  else if (state.status === "error") body = <p className="error-text">{errorText(state.error)}</p>;
+  else {
+    const s = state.data;
+    body = (
+      <>
+        <label className="switch">
+          <input type="checkbox" checked={s.switchOn} disabled={busy}
+            onChange={(e) => run(() => put("/api/admin/settings/mcp", { switchOn: e.target.checked }))} />
+          {t("mcpEnabled")}
+        </label>
+        {!s.enabled ? <p className="small" style={{ color: "var(--warning-fg)" }}>{t("mcpDisabledMessage")}</p> : null}
+        <p className="xs muted">{`${t("mcpServerUrl")}: `}<span dir="ltr">{s.resource}</span></p>
+        <h3 className="small bold">{`${t("mcpConnections")} (${s.connections.length})`}</h3>
+        {s.connections.length ? (
+          <ul className="small stack" style={{ "--gap": "6px", paddingInlineStart: "18px", margin: "0" }}>
+            {s.connections.map((c) => (
+              <li key={`${c.userId}-${c.clientId}`}>
+                <span className="bold">{c.name}</span>{" · "}<span dir="ltr">{c.email}</span>
+                {` · ${t("lastUsed")} ${c.lastUsedAt ? fmtShortDate(c.lastUsedAt) : t("never")}`}
+              </li>
+            ))}
+          </ul>
+        ) : <p className="small muted">{t("connectedAppsEmpty")}</p>}
+        <button className="btn danger-outline" type="button" disabled={busy || !s.connections.length} onClick={async () => {
+          if (!await confirmSheet({ title: t("mcpRevokeAll"), message: t("mcpRevokeAllConfirm"), confirmText: t("mcpRevokeAll"), danger: true })) return;
+          await run(() => post("/api/admin/settings/mcp/revoke-all"), t("disconnected"));
+        }}>{t("mcpRevokeAll")}</button>
+      </>
+    );
+  }
+  return (
+    <section className="card pad stack">
+      <h2 className="row"><Icon name="sparkle" />{t("mcpSettings")}</h2>
+      {body}
+    </section>
   );
 }

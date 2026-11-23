@@ -91,7 +91,13 @@ public sealed class TestApp : WebApplicationFactory<Program>
     private readonly string _conn;
     private readonly string _dbName = "t" + Guid.NewGuid().ToString("N");
 
-    public TestApp(MongoFixture mongo) => _conn = mongo.ConnectionString;
+    private readonly Dictionary<string, string> _settings;
+
+    public TestApp(MongoFixture mongo, Dictionary<string, string>? settings = null)
+    {
+        _conn = mongo.ConnectionString;
+        _settings = settings ?? new();
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -103,6 +109,17 @@ public sealed class TestApp : WebApplicationFactory<Program>
         builder.UseSetting("Auth:GoogleClientId", "test-client");
         builder.UseSetting("Auth:AdminEmails:0", AdminEmail);
         builder.UseSetting("Storage:LocalPath", Path.Combine(Path.GetTempPath(), _dbName));
+        // MCP (plan 011): keys made once per test run (generating RSA keys per app is slow), like the secret store.
+        builder.UseSetting("Mcp:SigningKey", TestKeys.SigningPem);
+        builder.UseSetting("Mcp:EncryptionKey", TestKeys.EncryptionKey);
+        builder.UseSetting("Mcp:Issuer", "http://localhost/");
+        builder.UseSetting("Mcp:SiteUrl", "http://site.test/");
+        // Field-level encryption on in every test (plan 011, E3), with one key vault for the whole run.
+        builder.UseSetting("FieldEncryption:Mode", "encrypt");
+        builder.UseSetting("FieldEncryption:KmsProvider", "local");
+        builder.UseSetting("FieldEncryption:LocalMasterKey", TestKeys.LocalMasterKey);
+        builder.UseSetting("FieldEncryption:KeyVaultDatabase", "keyvault_tests");
+        foreach (var (k, v) in _settings) builder.UseSetting(k, v);
         builder.ConfigureServices(s =>
         {
             s.RemoveAll<TimeProvider>();
@@ -151,4 +168,12 @@ public static class Http
 
     public static async Task<string?> Code(this HttpResponseMessage res) =>
         (await res.Json()).TryGetProperty("code", out var c) ? c.GetString() : null;
+}
+
+/// <summary>MCP token keys for the whole test run.</summary>
+public static class TestKeys
+{
+    public static readonly string SigningPem = System.Security.Cryptography.RSA.Create(2048).ExportPkcs8PrivateKeyPem();
+    public static readonly string EncryptionKey = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+    public static readonly string LocalMasterKey = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(96));
 }

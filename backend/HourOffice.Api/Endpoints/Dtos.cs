@@ -43,6 +43,20 @@ public sealed record MyBookingDto(
         b.Currency, rules.EffectiveStatus(b), b.Notes, b.SeriesId, b.CancelledAt, b.CreatedAt, b.ClientId, clientName);
 }
 
+public sealed record MyBookingsDto(List<MyBookingDto> Upcoming, List<MyBookingDto> Past);
+
+public sealed record RecurringResultDto(int Created, int Skipped, string SeriesId);
+
+public sealed record AvailabilityDto(string Date, List<string> BookedSlots, IReadOnlyList<string> Slots, int OpenHour,
+    int CloseHour, string Today, int NowHour, int MaxDaysAhead);
+
+public sealed record AnalyticsUserDto(string UserId, string FullName, string Email, int Bookings, int Hours, decimal Spent);
+
+public sealed record AnalyticsDto(string Period, string From, string To, int TotalBookings, int TotalHours, decimal Revenue,
+    List<AnalyticsUserDto> ByUser);
+
+public sealed record BannerDto(string Id, string Url);
+
 /// <summary>The client's id is returned as "clientId" (never "id").</summary>
 public sealed record ClientDto(
     string ClientId, string FirstName, string LastName, List<string> Phones, List<string> Emails, string Language,

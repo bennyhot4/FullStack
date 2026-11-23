@@ -12,3 +12,8 @@
   Cache-Control: no-cache
 /sw.js
   Cache-Control: no-cache
+
+# Plan 011: the consent page must never be framed (clickjacking).
+/McpConsent
+  Content-Security-Policy: frame-ancestors 'none'
+  X-Frame-Options: DENY

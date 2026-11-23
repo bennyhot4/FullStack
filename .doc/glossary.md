@@ -21,6 +21,10 @@
 | `client` | A person a user serves, kept in that user's private client list (name, 1–2 phones, 0–2 emails, consent flag); a booking may link one via `clientId`. Visible to its owner only, never to admins. Each admin's list also holds a copy of every registered user, marked with `sourceUserId` and kept in sync with that user's profile | customer, contact, patient |
 | distribution list | A named group of the owner's own clients, for future announcements (`DistributionList`, collection `distributionLists`, `/api/distribution-lists`; Hebrew "רשימת תפוצה"). Private to its owner. Nothing is sent yet | mailing list, group, audience, segment |
 | marketing consent | A user's own opt-in to receive updates and offers (`users.marketingConsent`); copied to the admins' copies of that user as `whatsAppConsent` | opt-in, subscription |
+| MCP | Model Context Protocol: the open protocol AI assistants use to call the site's tools (`/mcp`, plan 011) | AI API, plugin |
+| connected app | An AI assistant a person allowed to use their account through the consent page (`/ConnectedApps`; Hebrew "אפליקציה מחוברת"). Disconnecting ends its access on its next call | integration, bot |
+| scope | One permission a person grants a connected app (`offices:read`, `bookings:write`, `clients:basic`, `clients:full`, `admin:read`, `admin:write` ...); admin scopes only for admins | permission set, role |
+| field encryption | Personal fields (phones, client emails, notes) stored encrypted in MongoDB and decrypted only by the API (`FieldEncryption:Mode`) | hashing, masking |
 
 ## Naming Alignment
 - Keep this glossary aligned with naming decisions in `../.claude/rules/naming.md`.

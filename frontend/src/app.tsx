@@ -48,6 +48,9 @@ const routes: Record<string, Route> = {
   "/AdminAnalytics": { load: () => import("./pages/adminAnalytics"), nav: "Admin", admin: true },
   "/AdminBookings": { load: () => import("./pages/adminBookings"), nav: "Admin", admin: true },
   "/SiteSettingsPage": { load: () => import("./pages/siteSettings"), nav: "Admin", admin: true },
+  // Plan 011: AI assistants. The consent page needs a signed-in person (login brings them back with ?request=).
+  "/McpConsent": { load: () => import("./pages/mcpConsent"), nav: false },
+  "/ConnectedApps": { load: () => import("./pages/connectedApps"), nav: "MyBookings" },
 };
 
 type View =

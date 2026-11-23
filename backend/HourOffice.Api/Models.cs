@@ -1,4 +1,5 @@
 using MongoDB.Bson;
+using HourOffice.Api.Services;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace HourOffice.Api;
@@ -26,7 +27,8 @@ public sealed class User
     public string FullName { get; set; } = "";
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
-    public string? PhoneNumber { get; set; }
+    /// <summary>Encrypted at rest when FieldEncryption:Mode is encrypt (plan 011, E3).</summary>
+    [BsonSerializer(typeof(EncryptedSerializer<string>))] public string? PhoneNumber { get; set; }
     public string? PictureUrl { get; set; }
     public string Role { get; set; } = Roles.User;
     /// <summary>"active" or "invited" (added by an admin, has not signed in yet).</summary>
@@ -73,7 +75,7 @@ public sealed class Booking
     public decimal TotalPrice { get; set; }
     public string Currency { get; set; } = "ILS";
     public string Status { get; set; } = BookingStatus.Confirmed;
-    public string Notes { get; set; } = "";
+    [BsonSerializer(typeof(EncryptedSerializer<string>))] public string Notes { get; set; } = "";
     [BsonRepresentation(BsonType.ObjectId)] public string? SeriesId { get; set; }
     /// <summary>Optional link to one of the booking owner's clients. Only the owner ever sees it (never admins).</summary>
     [BsonRepresentation(BsonType.ObjectId)] public string? ClientId { get; set; }
@@ -97,14 +99,14 @@ public sealed class Client
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
     /// <summary>1–2 numbers in E.164 format.</summary>
-    public List<string> Phones { get; set; } = new();
+    [BsonSerializer(typeof(EncryptedSerializer<List<string>>))] public List<string> Phones { get; set; } = new();
     /// <summary>0–2 lower-cased addresses.</summary>
-    public List<string> Emails { get; set; } = new();
+    [BsonSerializer(typeof(EncryptedSerializer<List<string>>))] public List<string> Emails { get; set; } = new();
     public string Language { get; set; } = "he";
     /// <summary>The client agreed to get messages (future feature); covers all of the card's phones and emails.</summary>
     public bool WhatsAppConsent { get; set; }
     public DateTime? WhatsAppConsentAt { get; set; }
-    public string Notes { get; set; } = "";
+    [BsonSerializer(typeof(EncryptedSerializer<string>))] public string Notes { get; set; } = "";
     /// <summary>Set when the system added this client from a registered user (an admin's copy of that user).
     /// Not stored when null, so the unique (userId, sourceUserId) index ignores hand-typed clients.</summary>
     [BsonRepresentation(BsonType.ObjectId), BsonIgnoreIfNull] public string? SourceUserId { get; set; }
@@ -153,6 +155,8 @@ public sealed class RefreshToken
     public string TokenHash { get; set; } = "";
     public DateTime ExpiresAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    /// <summary>When this session signed in with Google; copied unchanged to each rotated token (plan 011, S1).</summary>
+    public DateTime? AuthTime { get; set; }
 }
 
 public static class SettingKeys
@@ -167,6 +171,8 @@ public static class SettingKeys
     public const string BrandPagesColor = "brand_pages_color";
     /// <summary>Internal marker: the one-time fill of the admins' client lists has run (see AdminClientSync).</summary>
     public const string AdminClientsFilled = "admin_clients_filled";
+    /// <summary>Admin switch for AI assistants (MCP): "false" turns it off. Missing = on (the env var is the master switch).</summary>
+    public const string McpEnabled = "mcp_enabled";
 
     public static readonly Dictionary<string, string> BrandDefaults = new()
     {
@@ -177,4 +183,50 @@ public static class SettingKeys
         [BrandBackgroundColor] = "#F3F6F9",
         [BrandPagesColor] = "#FFFFFF",
     };
+}
+
+/// <summary>A pending OAuth authorization request waiting for the user's decision on the consent page (plan 011).
+/// The id is a random secret; documents expire after a few minutes (TTL on <see cref="ExpiresAt"/>).</summary>
+public sealed class McpConsentRequest
+{
+    public const string Pending = "pending";
+    public const string Approved = "approved";
+    public const string Denied = "denied";
+    public const string Used = "used";
+
+    [BsonId] public string Id { get; set; } = "";
+    public string ClientId { get; set; } = "";
+    public string RedirectUri { get; set; } = "";
+    public string? State { get; set; }
+    /// <summary>The PKCE challenge of the first leg; the second leg must carry the same one.</summary>
+    public string CodeChallenge { get; set; } = "";
+    public List<string> RequestedScopes { get; set; } = new();
+    /// <summary>The original authorization request parameters, replayed after approval.</summary>
+    public Dictionary<string, string> Parameters { get; set; } = new();
+    public string Status { get; set; } = Pending;
+    [BsonRepresentation(BsonType.ObjectId)] public string? UserId { get; set; }
+    public List<string> GrantedScopes { get; set; } = new();
+    public DateTime CreatedAt { get; set; }
+    public DateTime ExpiresAt { get; set; }
+}
+
+/// <summary>One MCP tool call. Never stores arguments, tokens or personal data (plan 011, S8).</summary>
+public sealed class McpAuditEntry
+{
+    [BsonId, BsonRepresentation(BsonType.ObjectId)] public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
+    public DateTime At { get; set; }
+    [BsonRepresentation(BsonType.ObjectId)] public string? UserId { get; set; }
+    public string Role { get; set; } = "";
+    public string ClientId { get; set; } = "";
+    public string Tool { get; set; } = "";
+    /// <summary>"ok", "error" or "declined" (the user said no on the confirmation prompt).</summary>
+    public string Outcome { get; set; } = "";
+    public string? ErrorCode { get; set; }
+    /// <summary>Id of the booking, office or setting the call changed.</summary>
+    public string? TargetId { get; set; }
+    public bool IsWrite { get; set; }
+    public string IpHash { get; set; } = "";
+    public long DurationMs { get; set; }
+    /// <summary>TTL: 90 days, 365 days for admin writes.</summary>
+    public DateTime ExpiresAt { get; set; }
 }

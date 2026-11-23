@@ -14,13 +14,8 @@ public static partial class ClientEndpoints
     {
         var clients = app.MapGroup("/api/clients").RequireUser().RequireTerms();
 
-        clients.MapGet("", async (HttpContext ctx, MongoContext db, CancellationToken ct) =>
-        {
-            var me = ctx.Me().Id;
-            var list = await db.Clients.Find(c => c.UserId == me)
-                .SortBy(c => c.LastName).ThenBy(c => c.FirstName).Limit(Client.MaxPerUser).ToListAsync(ct);
-            return Results.Ok(list.Select(ClientDto.From));
-        });
+        clients.MapGet("", async (HttpContext ctx, ClientService svc, CancellationToken ct) =>
+            Results.Ok((await svc.ListAsync(ctx.Me().Id, null, ct)).Select(ClientDto.From)));
 
         clients.MapPost("", async (ClientRequest req, HttpContext ctx, MongoContext db, TimeProvider clock, CancellationToken ct) =>
         {
@@ -70,9 +65,8 @@ public static partial class ClientEndpoints
         });
     }
 
-    /// <summary>The client only if it belongs to <paramref name="userId"/>; null otherwise.</summary>
-    internal static async Task<Client?> FindOwnAsync(MongoContext db, string? id, string userId, CancellationToken ct) =>
-        Api.IsObjectId(id) ? await db.Clients.Find(c => c.Id == id && c.UserId == userId).FirstOrDefaultAsync(ct) : null;
+    private static Task<Client?> FindOwnAsync(MongoContext db, string? id, string userId, CancellationToken ct) =>
+        ClientService.FindOwnAsync(db, id, userId, ct);
 
     private sealed record Values(string FirstName, string LastName, List<string> Phones, List<string> Emails,
         string Language, bool Consent, string Notes);

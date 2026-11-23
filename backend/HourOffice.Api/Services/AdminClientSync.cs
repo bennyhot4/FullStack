@@ -25,21 +25,25 @@ public sealed class AdminClientSync(MongoContext db, TimeProvider clock, ILogger
     }
 
     /// <summary>The user changed their profile: update every admin's copy (name, first phone, first email, consent).
-    /// Fields the admin added (second phone/email, language, notes) are kept.</summary>
+    /// Fields the admin added (second phone/email, language, notes) are kept. Read-modify-write per copy (one per
+    /// admin): phones and emails may be encrypted at rest, so a positional "phones.0" update is not possible.</summary>
     public async Task UpdateUserInAdminsAsync(User user, CancellationToken ct)
     {
         if (!HasProfile(user)) return;
         try
         {
-            var update = Builders<Client>.Update
-                .Set(c => c.FirstName, user.FirstName)
-                .Set(c => c.LastName, user.LastName)
-                .Set("phones.0", user.PhoneNumber)
-                .Set("emails.0", user.Email)
-                .Set(c => c.WhatsAppConsent, user.MarketingConsent)
-                .Set(c => c.WhatsAppConsentAt, user.MarketingConsent ? user.MarketingConsentAt : null)
-                .Set(c => c.UpdatedAt, clock.GetUtcNow().UtcDateTime);
-            await db.Clients.UpdateManyAsync(c => c.SourceUserId == user.Id, update, cancellationToken: ct);
+            var copies = await db.Clients.Find(c => c.SourceUserId == user.Id).ToListAsync(ct);
+            foreach (var c in copies)
+            {
+                c.FirstName = user.FirstName;
+                c.LastName = user.LastName;
+                if (c.Phones.Count == 0) c.Phones.Add(user.PhoneNumber!); else c.Phones[0] = user.PhoneNumber!;
+                if (c.Emails.Count == 0) c.Emails.Add(user.Email); else c.Emails[0] = user.Email;
+                c.WhatsAppConsent = user.MarketingConsent;
+                c.WhatsAppConsentAt = user.MarketingConsent ? user.MarketingConsentAt : null;
+                c.UpdatedAt = clock.GetUtcNow().UtcDateTime;
+                await db.Clients.ReplaceOneAsync(x => x.Id == c.Id, c, cancellationToken: ct);
+            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

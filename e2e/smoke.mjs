@@ -76,7 +76,7 @@ step = "admin menu";
 await admin.click('.bottom-nav a[href="/Admin"]');
 await waitPath(admin, /^\/Admin$/);
 await admin.waitForSelector(".admin-menu a");
-check(await admin.locator(".admin-menu a").count() === 4, "admin menu has 4 links");
+check(await admin.locator(".admin-menu a").count() === 5, "admin menu has 5 links");
 await shot(admin, "admin-menu");
 await noHorizontalScroll(admin, "Admin");
 
@@ -286,6 +286,12 @@ await admin.click("main >> text=שוכרים");
 await ls.locator(".btn.danger-outline").click();
 await admin.locator("dialog.sheet .btn.danger").click();
 await admin.waitForSelector("text=אין רשימות תפוצה עדיין");
+
+step = "connected apps (plan 011)";
+await dana.goto(`${WEB}/ConnectedApps`);
+await dana.waitForSelector("text=אין אפליקציות מחוברות");
+await shot(dana, "connected-apps");
+await noHorizontalScroll(dana, "ConnectedApps");
 
 step = "regular user blocked from admin";
 await dana.goto(`${WEB}/AdminUsers`);
