@@ -13,7 +13,8 @@
 /sw.js
   Cache-Control: no-cache
 
-# Plan 011: the consent page must never be framed (clickjacking).
-/McpConsent
+# Plan 011: no page may be framed (clickjacking). Every page, not only /McpConsent: the SPA can reach the consent
+# page by client-side navigation (e.g. /login?from=/McpConsent...), and then only the first document's headers count.
+/*
   Content-Security-Policy: frame-ancestors 'none'
   X-Frame-Options: DENY

@@ -98,7 +98,8 @@ public static class McpCallFilter
             ErrorCode = http.Items[McpCaller.ErrorKey] as string,
             TargetId = http.Items[McpCaller.TargetKey] as string,
             IsWrite = isWrite,
-            IpHash = McpCaller.HashIp(http.Connection.RemoteIpAddress?.ToString()),
+            IpHash = McpCaller.HashIp(http.Connection.RemoteIpAddress?.ToString(),
+                services.GetRequiredService<Microsoft.Extensions.Options.IOptions<AuthOptions>>().Value.JwtSigningKey),
             DurationMs = sw.ElapsedMilliseconds,
             ExpiresAt = now.AddDays(isWrite && tool.StartsWith("admin_", StringComparison.Ordinal) ? 365 : 90),
         };
