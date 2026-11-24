@@ -30,6 +30,20 @@ public sealed class OAuthTests(MongoFixture mongo) : IDisposable
     }
 
     [Fact]
+    public async Task A_burst_of_401s_from_one_ip_is_flagged_once_per_minute()
+    {
+        // 19 failed calls through the real pipeline; the 20th (counted directly) crosses the threshold, later ones do not.
+        for (var i = 1; i < HourOffice.Api.Mcp.McpAuthFailureMonitor.Threshold; i++)
+            Assert.Equal(HttpStatusCode.Unauthorized, (await H().RpcAsync(null, "tools/list")).Item1.StatusCode);
+        var monitor = _app.Services.GetRequiredService<HourOffice.Api.Mcp.McpAuthFailureMonitor>();
+        // TestServer has no remote IP, like this bare context: both count as "unknown".
+        Assert.True(monitor.Record(new Microsoft.AspNetCore.Http.DefaultHttpContext()));
+        Assert.False(monitor.Record(new Microsoft.AspNetCore.Http.DefaultHttpContext()));
+        _app.Clock.Now = _app.Clock.Now.AddMinutes(1);
+        Assert.False(monitor.Record(new Microsoft.AspNetCore.Http.DefaultHttpContext()));
+    }
+
+    [Fact]
     public async Task Discovery_documents_describe_the_resource_and_the_server()
     {
         var h = H();

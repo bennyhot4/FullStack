@@ -15,8 +15,12 @@ export default function McpConsent({ params }: PageProps) {
   const id = params.get("request") ?? "";
   const { state, reload } = useAsync(() => get<ConsentRequest>(`/oauth/authorize/request/${encodeURIComponent(id)}`), id);
 
+  // Defence in depth against clickjacking: never show the Allow button inside a frame, whatever the headers.
+  const framed = window.top !== window.self;
+
   let body;
-  if (!id) body = <Empty icon="alert" text={t("consent_not_found")} />;
+  if (framed) body = <Empty icon="alert" text={t("consent_not_found")} />;
+  else if (!id) body = <Empty icon="alert" text={t("consent_not_found")} />;
   else if (state.status === "loading") body = <Skeletons n={2} height={120} />;
   else if (state.status === "error") {
     body = asApiError(state.error).code === "consent_not_found"
