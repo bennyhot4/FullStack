@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { get } from "../api";
 import { t } from "../i18n";
 import { Link } from "../router";
 import { money, settings } from "../store";
-import type { OfficeDto } from "../types/api";
+import type { ConnectedApp, OfficeDto } from "../types/api";
 import { useAsync } from "../useAsync";
 import { Carousel } from "../components/carousel";
 import { Empty, ErrorBox, Icon, Skeletons, amenityIcon } from "../ui";
@@ -29,7 +30,8 @@ export default function Home() {
           </div>
         </div>
       </header>
-      <div className="container wide" style={{ paddingBlock: "16px" }}>
+      <div className="container wide stack" style={{ paddingBlock: "16px", "--gap": "16px" }}>
+        {s.mcp.available ? <ConnectCard /> : null}
         <div className="grid-cards">
           {state.status === "loading" ? <Skeletons n={3} height={280} />
             : state.status === "error" ? <ErrorBox error={state.error} onRetry={reload} />
@@ -38,6 +40,34 @@ export default function Home() {
         </div>
       </div>
     </>
+  );
+}
+
+const CONNECT_CARD_KEY = "connectCardHidden";
+
+const cardHidden = () => { try { return localStorage.getItem(CONNECT_CARD_KEY) === "1"; } catch { return false; } };
+
+/** Plan 012: invites the person to connect their AI assistant, until they have one or hide the card. */
+function ConnectCard() {
+  const [hidden, setHidden] = useState(cardHidden);
+  const { state } = useAsync(() => (hidden ? Promise.resolve([]) : get<ConnectedApp[]>("/api/me/connected-apps")), hidden);
+  if (hidden || state.status !== "done" || state.data.length) return null;
+  const hide = () => {
+    try { localStorage.setItem(CONNECT_CARD_KEY, "1"); } catch { /* private mode: hidden for this visit only */ }
+    setHidden(true);
+  };
+  return (
+    <section className="card pad connect-card">
+      <Icon name="sparkle" className="lg" />
+      <div className="stack grow" style={{ "--gap": "6px" }}>
+        <h2>{t("connectHomeTitle")}</h2>
+        <p className="small muted">{t("connectHomeText")}</p>
+        <div className="row wrap" style={{ "--gap": "8px" }}>
+          <Link className="btn sm" href="/ConnectAssistant">{t("connectAnother")}</Link>
+          <button className="btn outline sm" type="button" onClick={hide}>{t("connectHomeDismiss")}</button>
+        </div>
+      </div>
+    </section>
   );
 }
 

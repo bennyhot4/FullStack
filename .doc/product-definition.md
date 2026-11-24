@@ -80,3 +80,8 @@ Each criterion must be provable by a test or a command. (Source: `docs/PLAN.md` 
 - AC21 — With `FieldEncryption:Mode=encrypt`, phones, client emails and notes are stored as encrypted BinData and read
   back plain through the API; `decrypt` mode restores them; with encryption off, encrypted data is never returned as
   garbage (the request fails).
+- AC22 — Connecting is simple (plan 012): `/ConnectAssistant` gives a guide per assistant (Claude, ChatGPT, Gemini,
+  Codex, Cursor, VS Code, Other) with a Copy button for the address (or the Codex command) and one-click install links
+  for Cursor and VS Code; it detects the new connection by itself and shows example requests. The consent page shows
+  what the assistant may do in plain words with one Allow button; the permission checkboxes sit under "Advanced", and
+  sensitive ones are never preselected. While MCP is switched off the page and the home card are hidden.

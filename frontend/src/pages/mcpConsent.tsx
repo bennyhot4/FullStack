@@ -88,12 +88,20 @@ function ConsentForm({ request }: { request: ConsentRequest }) {
         </div>
         {request.verified
           ? <span className="badge success" style={{ alignSelf: "flex-start" }}><Icon name="checkCircle" className="sm" />{t("mcpConsentVerified")}</span>
-          : <p className="small" role="note" style={{ color: "var(--warning-fg)" }}><Icon name="alert" className="sm" /> {t("mcpConsentUnverified")}</p>}
+          : <p className="small muted" role="note"><Icon name="shield" className="sm" /> {t("mcpUnverifiedHint")}</p>}
         <p className="xs muted">{`${t("mcpConsentRedirect")} `}<span dir="ltr" className="bold">{request.redirectHost}</span></p>
       </section>
 
-      <section className="card pad stack" style={{ "--gap": "4px" }}>
-        <h2 className="row" style={{ marginBottom: "6px" }}><Icon name="shield" />{t("mcpConsentChoose")}</h2>
+      {/* Plan 012: what the assistant gets, in plain words; the checkboxes are only under "Advanced". */}
+      <section className="card pad stack" style={{ "--gap": "8px" }}>
+        <h2 className="row"><Icon name="shield" />{t("mcpSummaryIntro")}</h2>
+        <ul className="small stack scope-summary" style={{ "--gap": "4px" }}>
+          {request.scopes.filter((s) => chosen.has(s.scope)).map((s) => <li key={s.scope}>{t(SCOPE_LABEL[s.scope])}</li>)}
+        </ul>
+      </section>
+
+      <details className="card pad stack advanced" style={{ "--gap": "4px" }}>
+        <summary>{t("mcpAdvanced")}</summary>
         {request.scopes.map((s) => {
           const warning = SCOPE_WARNING[s.scope];
           return (
@@ -107,7 +115,7 @@ function ConsentForm({ request }: { request: ConsentRequest }) {
             </label>
           );
         })}
-      </section>
+      </details>
 
       <p className="small muted">{t("mcpConsentProviderNotice")}</p>
 
@@ -119,9 +127,12 @@ function ConsentForm({ request }: { request: ConsentRequest }) {
       ) : null}
 
       <p className="error-text" role="alert">{error}</p>
-      <div className="row" style={{ "--gap": "8px" }}>
-        <button className="btn outline grow" type="button" disabled={busy} onClick={() => decide(false)}>{t("mcpDeny")}</button>
-        <button className="btn grow" type="button" disabled={busy} onClick={() => decide(true)}>{t("mcpAllow")}</button>
+      {/* Plan 012: one big Allow (the recommended set unless changed under Advanced), Deny below it. */}
+      <div className="stack" style={{ "--gap": "8px" }}>
+        <button className="btn block" type="button" disabled={busy} onClick={() => decide(true)}>
+          <Icon name="checkCircle" className="sm" />{t("mcpAllowRecommended")}
+        </button>
+        <button className="btn outline block" type="button" disabled={busy} onClick={() => decide(false)}>{t("mcpDeny")}</button>
       </div>
     </>
   );

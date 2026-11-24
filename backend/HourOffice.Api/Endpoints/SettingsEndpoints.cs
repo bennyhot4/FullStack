@@ -13,8 +13,10 @@ public static class SettingsEndpoints
     {
         // Public (no sign-in): the login page needs branding and the Google client id.
         app.MapGet("/api/settings/public", async (MongoContext db, IOptions<AuthOptions> auth, IOptions<CurrencyOptions> cur,
-            BookingRules rules, CancellationToken ct) =>
+            BookingRules rules, Mcp.McpGate mcpGate, IOptions<McpOptions> mcp, CancellationToken ct) =>
         {
+            // Plan 012: the "Connect an AI assistant" page needs the MCP address, and hides itself while MCP is off.
+            var mcpAvailable = await mcpGate.IsEnabledAsync(ct);
             var all = await db.Settings.Find(FilterDefinition<SiteSetting>.Empty).ToListAsync(ct);
             string Get(string key) => all.FirstOrDefault(s => s.Key == key)?.Value is { Length: > 0 } v ? v : SettingKeys.BrandDefaults[key];
             return Results.Ok(new
@@ -32,6 +34,7 @@ public static class SettingsEndpoints
                 banners = SettingsService.Banners(all).Select(b => new { id = b.Id, url = b.Value }),
                 currency = new { @base = cur.Value.Base, displaySymbols = cur.Value.DisplaySymbols },
                 booking = new { rules.Options.OpenHour, rules.Options.CloseHour, rules.Options.MaxDaysAhead, rules.Options.TimeZone },
+                mcp = new { available = mcpAvailable, url = mcpAvailable ? mcp.Value.Resource : "" },
                 auth = new
                 {
                     googleClientId = auth.Value.GoogleClientId,

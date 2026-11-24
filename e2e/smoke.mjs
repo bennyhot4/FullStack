@@ -293,6 +293,17 @@ await dana.waitForSelector("text=אין אפליקציות מחוברות");
 await shot(dana, "connected-apps");
 await noHorizontalScroll(dana, "ConnectedApps");
 
+step = "connect an AI assistant (plan 012)";
+for (const [page, title, lang] of [[dana, "איך מחברים את Claude", "he"], [noa, "How to connect Claude", "en"]]) {
+  await page.goto(`${WEB}/ConnectAssistant`);
+  await page.click(".assistant-choice >> text=Claude");
+  await page.waitForSelector(`text=${title}`);
+  const address = await page.locator(".copy-box input").inputValue();
+  check(address.endsWith("/mcp"), `connect page shows the MCP address (${lang})`);
+  await shot(page, `connect-assistant-${lang}`);
+  await noHorizontalScroll(page, `ConnectAssistant ${lang}`);
+}
+
 step = "regular user blocked from admin";
 await dana.goto(`${WEB}/AdminUsers`);
 await dana.waitForSelector("text=נדרשת הרשאת מנהל");

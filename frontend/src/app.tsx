@@ -51,6 +51,8 @@ const routes: Record<string, Route> = {
   // Plan 011: AI assistants. The consent page needs a signed-in person (login brings them back with ?request=).
   "/McpConsent": { load: () => import("./pages/mcpConsent"), nav: false },
   "/ConnectedApps": { load: () => import("./pages/connectedApps"), nav: "MyBookings" },
+  // Plan 012: connect the assistant you already use in about a minute.
+  "/ConnectAssistant": { load: () => import("./pages/connectAssistant"), nav: "MyBookings" },
 };
 
 type View =
