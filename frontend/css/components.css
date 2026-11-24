@@ -243,3 +243,21 @@ dialog.sheet[open] { animation: sheet-up .22s ease-out; }
 }
 .admin-menu a .icon { color: var(--primary); }
 @media (min-width: 640px) { .admin-menu { grid-template-columns: repeat(4, 1fr); } }
+
+/* ---------- Connect an AI assistant (plan 012) ---------- */
+.spinner.inline { width: 18px; height: 18px; border-width: 3px; flex: none; }
+.assistant-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+@media (min-width: 640px) { .assistant-grid { grid-template-columns: repeat(4, 1fr); } }
+.assistant-grid .chip { min-height: var(--tap); justify-content: center; text-align: center; font-weight: 600; }
+.connect-steps li { line-height: 1.5; }
+.copy-box input { min-width: 0; font-size: 16px; }
+.copy-box .btn { flex: none; }
+.connect-done { border-color: var(--success-fg, var(--primary)); }
+.connect-card { display: flex; align-items: center; gap: 12px; }
+.connect-card .grow { min-width: 0; }
+details.advanced > summary { min-height: var(--tap); display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; }
+.scope-summary { margin: 0; padding-inline-start: 18px; }
+details.advanced > summary { list-style: none; }
+details.advanced > summary::-webkit-details-marker { display: none; }
+details.advanced > summary::after { content: "+"; margin-inline-start: auto; font-size: 1.25rem; line-height: 1; color: var(--text-muted); }
+details.advanced[open] > summary::after { content: "\2212"; }

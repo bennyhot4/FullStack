@@ -45,7 +45,7 @@ HourOffice היא מערכת להזמנת משרדים וחדרים לפי שע�
 - שרת המערכת: Google Cloud Run, בבלגיה
 - תמונות המשרדים שמעלים מנהלי המערכת: Cloudflare R2. התמונות האלה ציבוריות.
 - האתר עצמו: Cloudflare Pages
-- בדפדפן נשמרים רק אסימוני הכניסה והשפה שבחרת (localStorage). האתר אינו משתמש בעוגיות (cookies), בכלי ניתוח או בפרסומות.
+- בדפדפן נשמרים רק אסימוני הכניסה, השפה שבחרת והאם הסתרת את כרטיס חיבור עוזר ה-AI (localStorage). האתר אינו משתמש בעוגיות (cookies), בכלי ניתוח או בפרסומות.
 - Google שומרת יומני גישה לשרת (כתובת IP, שעה וכתובת הבקשה) למשך 30 יום.
 
 ## מחיקת המידע
@@ -94,7 +94,7 @@ HourOffice is a system for booking offices and rooms by the hour. It is operated
 - Application server: Google Cloud Run, in Belgium
 - Office images uploaded by administrators: Cloudflare R2. These images are public.
 - The website itself: Cloudflare Pages
-- Your browser stores only your sign-in tokens and your chosen language (localStorage). The site uses no cookies, no analytics and no ads.
+- Your browser stores only your sign-in tokens, your chosen language and whether you hid the "connect an AI assistant" card (localStorage). The site uses no cookies, no analytics and no ads.
 - Google keeps server access logs (IP address, time and requested address) for 30 days.
 
 ## Deleting your data

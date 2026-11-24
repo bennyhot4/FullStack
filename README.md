@@ -45,7 +45,7 @@ In this version **the server enforces every rule**, and the database itself make
 - **Made for phones:** works from a 360-pixel-wide screen, with a bottom menu and large touch targets.
 - **Installable:** you can add it to your phone's home screen like an app.
 - **Currency aware:** every office and booking has a currency (Israeli shekel by default), and the symbol matches the language.
-- **Works with AI assistants:** connect Claude, ChatGPT or another assistant that supports MCP, and ask it in plain words to find a free office, book it, or list and cancel your bookings. You choose on a consent screen what it may do (for example, your clients' names only, not their phone numbers), and you can disconnect it at any time under *Connected apps*. Admins can also let it manage bookings, offices and branding. The assistant follows exactly the same rules as the site.
+- **Works with AI assistants:** on the site, open *AI assistants* (or the card on the home page), pick the assistant you use and follow its 3–4 short steps — copy, paste, allow — in about a minute (Claude, ChatGPT, Gemini, Codex, Cursor, VS Code or any assistant that supports MCP). Then ask it in plain words to find a free office, book it, or list and cancel your bookings. You choose on a consent screen what it may do (for example, your clients' names only, not their phone numbers), and you can disconnect it at any time under *Connected apps*. Admins can also let it manage bookings, offices and branding. The assistant follows exactly the same rules as the site.
 
 ---
 

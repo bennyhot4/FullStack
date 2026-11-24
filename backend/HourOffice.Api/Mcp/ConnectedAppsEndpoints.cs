@@ -91,8 +91,9 @@ public static class ConnectedAppsEndpoints
             var verified = props.TryGetValue(OAuthEndpoints.PropVerified, out var v) && v.ValueKind == JsonValueKind.True;
             var scopes = g.SelectMany(d => d.TryGetValue("scopes", out var s) && s.IsBsonArray
                 ? s.AsBsonArray.Select(x => x.ToString()!) : []).Distinct().OrderBy(s => McpScopes.All.ToList().IndexOf(s)).ToList();
+            // The latest consent: a reconnect moves it, so /ConnectAssistant (plan 012) can tell that it just worked.
             var connectedAt = g.Select(d => d.TryGetValue("creation_date", out var c) && c.IsValidDateTime ? c.ToUniversalTime() : (DateTime?)null)
-                .Min();
+                .Max();
             var subject = g.Key.Subject;
             var last = await db.McpAudit.Find(a => a.UserId == subject && a.ClientId == clientId)
                 .SortByDescending(a => a.At).Project(a => (DateTime?)a.At).FirstOrDefaultAsync(ct);

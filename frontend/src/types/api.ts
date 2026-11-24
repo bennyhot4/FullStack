@@ -144,6 +144,8 @@ export interface PublicSettings {
   currency: { base: string; displaySymbols: Record<string, string> };
   booking: { openHour: number; closeHour: number; maxDaysAhead: number; timeZone: string };
   auth: { googleClientId: string | null; devLoginEnabled: boolean; allowOpenSignup: boolean };
+  /** Plan 012: the MCP address for "Connect an AI assistant"; url is "" while MCP is switched off. */
+  mcp: { available: boolean; url: string };
 }
 
 /** GET /api/distribution-lists (plan 008) */

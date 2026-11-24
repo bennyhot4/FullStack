@@ -1,6 +1,7 @@
 import { del, get } from "../api";
 import { t } from "../i18n";
-import { fmtShortDate } from "../store";
+import { Link } from "../router";
+import { fmtShortDate, settings } from "../store";
 import type { ConnectedApp } from "../types/api";
 import { useAsync } from "../useAsync";
 import { SCOPE_LABEL } from "../components/mcpScopes";
@@ -49,8 +50,13 @@ export default function ConnectedApps() {
 
   return (
     <>
-      <PageHeader title={t("connectedApps")} subtitle={t("connectedAppsNote")} back="/MyBookings" />
-      <div className="container stack" style={{ paddingBlock: "16px", "--gap": "12px" }}>{list}</div>
+      <PageHeader title={t("connectedApps")} subtitle={t("connectedAppsNote")} back="/ConnectAssistant" />
+      <div className="container stack" style={{ paddingBlock: "16px", "--gap": "12px" }}>
+        {list}
+        {settings().mcp.available
+          ? <Link className="btn outline block" href="/ConnectAssistant"><Icon name="plus" className="sm" />{t("connectAnother")}</Link>
+          : null}
+      </div>
     </>
   );
 }

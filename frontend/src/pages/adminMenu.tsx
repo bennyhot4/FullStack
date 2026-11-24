@@ -8,7 +8,7 @@ const LINKS: { href: string; icon: IconName; label: TranslationKey }[] = [
   { href: "/AdminUsers", icon: "users", label: "users" },
   { href: "/AdminAnalytics", icon: "chart", label: "analytics" },
   { href: "/AdminBookings", icon: "list", label: "bookings" },
-  { href: "/ConnectedApps", icon: "link", label: "connectedApps" },
+  { href: "/ConnectAssistant", icon: "sparkle", label: "aiAssistants" },
 ];
 
 export default function AdminMenu() {

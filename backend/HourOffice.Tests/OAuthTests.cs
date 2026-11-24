@@ -249,6 +249,26 @@ public sealed class OAuthTests(MongoFixture mongo) : IDisposable
     }
 
     [Fact]
+    public async Task Public_settings_give_the_mcp_address_only_while_it_is_available()
+    {
+        async Task<System.Text.Json.JsonElement> McpOf(HttpClient c) =>
+            (await c.GetFromJsonAsync<System.Text.Json.JsonElement>("/api/settings/public")).GetProperty("mcp");
+
+        var on = await McpOf(_app.CreateClient());
+        Assert.True(on.GetProperty("available").GetBoolean());
+        Assert.EndsWith("/mcp", on.GetProperty("url").GetString());
+
+        var admin = await _app.AdminAsync();
+        await admin.PutAsJsonAsync("/api/admin/settings/mcp", new { switchOn = false });
+        var switchedOff = await McpOf(_app.CreateClient());
+        Assert.False(switchedOff.GetProperty("available").GetBoolean());
+        Assert.Equal("", switchedOff.GetProperty("url").GetString());
+
+        using var off = new TestApp(mongo);
+        Assert.False((await McpOf(off.CreateClient())).GetProperty("available").GetBoolean());
+    }
+
+    [Fact]
     public async Task Dynamic_registration_is_restricted()
     {
         var h = H();
