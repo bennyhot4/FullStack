@@ -185,6 +185,9 @@ public sealed class McpCaller(IHttpContextAccessor http, MongoContext db, IOptio
         return new McpToolError("declined", "The person did not confirm. Nothing was changed.");
     }
 
-    internal static string HashIp(string? ip) =>
-        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(ip ?? "unknown")))[..16];
+    /// <summary>Keyed hash (HMAC) of the IP: a plain SHA-256 of an IPv4 address is reversed by trying all 2^32.
+    /// The key is the server's secret JWT signing key, so the hash cannot be recomputed from a database dump.</summary>
+    internal static string HashIp(string? ip, string secret) =>
+        Convert.ToHexString(HMACSHA256.HashData(Encoding.UTF8.GetBytes("mcp-ip:" + secret),
+            Encoding.UTF8.GetBytes(ip ?? "unknown")))[..16];
 }

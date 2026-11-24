@@ -40,6 +40,7 @@ public static class McpSetup
         services.AddHttpContextAccessor();
         services.AddSingleton(sp => sp.GetRequiredService<MongoContext>().Database);
         services.AddSingleton<McpGate>();
+        services.AddSingleton<McpAuthFailureMonitor>();
         services.AddScoped<McpCaller>();
 
         services.AddOpenIddict()
@@ -202,6 +203,8 @@ public static class McpSetup
                 }
             }
             await next();
+            if (ctx.Response.StatusCode == StatusCodes.Status401Unauthorized)
+                ctx.RequestServices.GetRequiredService<McpAuthFailureMonitor>().Record(ctx);
         });
     }
 
