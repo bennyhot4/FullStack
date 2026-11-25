@@ -212,6 +212,16 @@ public static class McpSetup
     {
         OAuthEndpoints.Map(app);
         ConnectedAppsEndpoints.Map(app);
+        // RFC 9728 §3.1: for a resource with a path (/mcp) clients look first at the path-suffixed address. Same document
+        // as the root one (served by the MCP SDK); the kill switch covers both.
+        app.MapGet("/.well-known/oauth-protected-resource/mcp", (IOptions<McpOptions> o) => Results.Json(new Dictionary<string, object>
+        {
+            ["resource"] = o.Value.Resource,
+            ["authorization_servers"] = new[] { o.Value.Issuer },
+            ["scopes_supported"] = McpScopes.All.ToArray(),
+            ["bearer_methods_supported"] = new[] { "header" },
+            ["resource_name"] = "HourOffice",
+        }));
         app.MapMcp("/mcp").RequireAuthorization(EndpointPolicy).RequireRateLimiting(CallsPolicy);
     }
 }

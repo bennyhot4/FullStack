@@ -278,10 +278,61 @@ public sealed class OAuthTests(MongoFixture mongo) : IDisposable
         Assert.Equal(HttpStatusCode.BadRequest, await Reg(new { client_name = "x",
             redirect_uris = Enumerable.Range(1, 6).Select(i => $"https://a.example/{i}").ToArray() }));
         Assert.Equal(HttpStatusCode.BadRequest, await Reg(new { client_name = "x", redirect_uris = new[] { "https://a.example/cb" },
-            token_endpoint_auth_method = "client_secret_basic" }));
+            token_endpoint_auth_method = "private_key_jwt" }));
         Assert.Equal(HttpStatusCode.BadRequest, await Reg(new { client_name = "x", redirect_uris = new[] { "https://a.example/cb" },
             grant_types = new[] { "password" } }));
         Assert.Equal(HttpStatusCode.Created, await Reg(new { client_name = "x", redirect_uris = new[] { "https://a.example/cb" } }));
+    }
+
+    [Fact]
+    public async Task A_server_side_assistant_registers_with_a_secret_and_completes_the_flow()
+    {
+        // The registration ChatGPT sends: a confidential client with client_secret_post, its published redirect address.
+        var h = H();
+        const string redirect = "https://chatgpt.com/connector_platform_oauth_redirect";
+        var reg = await h.Raw.PostAsJsonAsync("/oauth/register", new
+        {
+            client_name = "ChatGPT", redirect_uris = new[] { redirect }, grant_types = new[] { "authorization_code", "refresh_token" },
+            response_types = new[] { "code" }, token_endpoint_auth_method = "client_secret_post",
+        });
+        Assert.Equal(HttpStatusCode.Created, reg.StatusCode);
+        var body = await reg.Json();
+        Assert.Equal("client_secret_post", body.GetProperty("token_endpoint_auth_method").GetString());
+        var clientId = body.GetProperty("client_id").GetString()!;
+        var secret = body.GetProperty("client_secret").GetString()!;
+        Assert.Equal(0, body.GetProperty("client_secret_expires_at").GetInt64());
+
+        var (verifier, challenge) = McpHarness.Pkce();
+        var start = await h.Raw.GetAsync(McpHarness.AuthorizeUrl(clientId, challenge, McpHarness.UserScopes, redirect: redirect));
+        Assert.Equal(HttpStatusCode.Redirect, start.StatusCode);
+        var requestId = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(start.Headers.Location!.Query)["request"].ToString();
+        var site = await _app.LoginAsync("dana@example.com");
+        var decision = await McpHarness.DecideAsync(site, requestId, true, McpHarness.UserScopes);
+        var back = await h.Raw.GetAsync(new Uri((await decision.Json()).GetProperty("redirectUrl").GetString()!).PathAndQuery);
+        Assert.StartsWith(redirect, back.Headers.Location!.ToString());
+        var code = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(back.Headers.Location!.Query)["code"].ToString();
+
+        Task<HttpResponseMessage> Token(string? withSecret) => h.Raw.PostAsync("/oauth/token", new FormUrlEncodedContent(
+            new Dictionary<string, string>
+            {
+                ["grant_type"] = "authorization_code", ["code"] = code, ["redirect_uri"] = redirect, ["client_id"] = clientId,
+                ["code_verifier"] = verifier, ["resource"] = McpHarness.Resource,
+            }.Concat(withSecret is null ? [] : [new KeyValuePair<string, string>("client_secret", withSecret)])));
+        // Without the secret, or with a wrong one, the code is refused; with it, tokens are issued and /mcp answers.
+        Assert.Equal(HttpStatusCode.Unauthorized, (await Token(null)).StatusCode); // invalid_client
+        Assert.NotEqual(HttpStatusCode.OK, (await Token("wrong")).StatusCode);
+        var token = await Token(secret);
+        Assert.Equal(HttpStatusCode.OK, token.StatusCode);
+        var access = (await token.Json()).GetProperty("access_token").GetString()!;
+        Assert.Equal(HttpStatusCode.OK, (await h.RpcAsync(access, "tools/list")).Http.StatusCode);
+    }
+
+    [Fact]
+    public async Task Protected_resource_metadata_is_also_at_the_path_suffixed_address()
+    {
+        var doc = await H().Raw.GetFromJsonAsync<System.Text.Json.JsonElement>("/.well-known/oauth-protected-resource/mcp");
+        Assert.Equal(McpHarness.Resource, doc.GetProperty("resource").GetString());
+        Assert.Equal(7, doc.GetProperty("scopes_supported").GetArrayLength());
     }
 
     [Fact]

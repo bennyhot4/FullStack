@@ -248,12 +248,18 @@ public static class OAuthEndpoints
         [property: JsonPropertyName("grant_types")] string[] GrantTypes,
         [property: JsonPropertyName("response_types")] string[] ResponseTypes,
         [property: JsonPropertyName("token_endpoint_auth_method")] string TokenEndpointAuthMethod,
-        [property: JsonPropertyName("scope")] string Scope);
+        [property: JsonPropertyName("scope")] string Scope,
+        [property: JsonPropertyName("client_secret"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ClientSecret = null,
+        [property: JsonPropertyName("client_secret_expires_at"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? ClientSecretExpiresAt = null);
 
-    /// <summary>RFC 7591, restricted (S7): public clients only, at most 5 exact redirect URIs (https, or http on loopback).
-    /// Never-used registrations are removed after 24 hours.</summary>
+    /// <summary>Token endpoint authentication methods a registering client may ask for. Assistants that run on a
+    /// server (ChatGPT) ask for a client secret; desktop apps use none. Either way PKCE S256 is still required.</summary>
+    private static readonly string[] AuthMethods = ["none", "client_secret_post", "client_secret_basic"];
+
+    /// <summary>RFC 7591, restricted (S7): public clients, or confidential ones that get a server-generated secret; at most
+    /// 5 exact redirect URIs (https, or http on loopback). Never-used registrations are removed after 24 hours.</summary>
     private static async Task<IResult> RegisterAsync(HttpContext ctx, MongoContext db, IOptions<McpOptions> mcp,
-        TimeProvider clock, IOpenIddictApplicationManager apps, CancellationToken ct)
+        TimeProvider clock, IOpenIddictApplicationManager apps, ILoggerFactory logs, CancellationToken ct)
     {
         RegistrationRequest? req;
         try
@@ -262,30 +268,34 @@ public static class OAuthEndpoints
         }
         catch (JsonException)
         {
-            return RegistrationError("invalid_client_metadata", "The body is not valid JSON.");
+            return Refuse(null, "invalid_client_metadata", "The body is not valid JSON.");
         }
-        if (req is null) return RegistrationError("invalid_client_metadata", "The body is empty.");
-        if (req.TokenEndpointAuthMethod is not (null or "none"))
-            return RegistrationError("invalid_client_metadata", "Only public clients (token_endpoint_auth_method none).");
+        if (req is null) return Refuse(null, "invalid_client_metadata", "The body is empty.");
+        var method = req.TokenEndpointAuthMethod ?? "none";
+        if (!AuthMethods.Contains(method))
+            return Refuse(req, "invalid_client_metadata", "token_endpoint_auth_method must be none, client_secret_post or client_secret_basic.");
         if (req.GrantTypes?.Any(g => g is not (GrantTypes.AuthorizationCode or GrantTypes.RefreshToken)) == true)
-            return RegistrationError("invalid_client_metadata", "Only authorization_code and refresh_token.");
+            return Refuse(req, "invalid_client_metadata", "Only authorization_code and refresh_token.");
         if (req.ResponseTypes?.Any(r => r != ResponseTypes.Code) == true)
-            return RegistrationError("invalid_client_metadata", "Only the code response type.");
+            return Refuse(req, "invalid_client_metadata", "Only the code response type.");
         var uris = (req.RedirectUris ?? new()).Distinct(StringComparer.Ordinal).ToList();
-        if (uris.Count is 0 or > 5) return RegistrationError("invalid_redirect_uri", "Give 1 to 5 redirect URIs.");
+        if (uris.Count is 0 or > 5) return Refuse(req, "invalid_redirect_uri", "Give 1 to 5 redirect URIs.");
         foreach (var uri in uris)
-            if (!IsAllowedRedirect(uri)) return RegistrationError("invalid_redirect_uri", "Redirect URIs must be https (or http on loopback), without a fragment.");
+            if (!IsAllowedRedirect(uri)) return Refuse(req, "invalid_redirect_uri", "Redirect URIs must be https (or http on loopback), without a fragment.");
         var name = McpText.Clean(req.ClientName, 100);
-        if ((req.ClientName?.Length ?? 0) > 100) return RegistrationError("invalid_client_metadata", "client_name is at most 100 characters.");
+        if ((req.ClientName?.Length ?? 0) > 100) return Refuse(req, "invalid_client_metadata", "client_name is at most 100 characters.");
 
         var now = clock.GetUtcNow().UtcDateTime;
         await CleanupUnusedAsync(db, now, ct);
 
         var known = mcp.Value.KnownClients.FirstOrDefault(k => uris.All(u => k.RedirectUris.Contains(u, StringComparer.Ordinal)));
+        // A confidential client gets a random secret, shown once in this response; OpenIddict stores only its hash.
+        var secret = method == "none" ? null : RandomId();
         var descriptor = new OpenIddictApplicationDescriptor
         {
             ClientId = RandomId(),
-            ClientType = ClientTypes.Public,
+            ClientSecret = secret,
+            ClientType = secret is null ? ClientTypes.Public : ClientTypes.Confidential,
             ApplicationType = ApplicationTypes.Web,
             ConsentType = ConsentTypes.Explicit,
             DisplayName = known?.Name ?? (name.Length > 0 ? name : "Unnamed app"),
@@ -307,7 +317,20 @@ public static class OAuthEndpoints
 
         return Results.Json(new RegistrationResponse(descriptor.ClientId!, new DateTimeOffset(now).ToUnixTimeSeconds(),
             descriptor.DisplayName!, uris, [GrantTypes.AuthorizationCode, GrantTypes.RefreshToken], [ResponseTypes.Code],
-            "none", string.Join(' ', McpScopes.All)), statusCode: StatusCodes.Status201Created);
+            method, string.Join(' ', McpScopes.All), secret, secret is null ? null : 0), statusCode: StatusCodes.Status201Created);
+
+        // Every refusal is logged with what the client asked for (never a secret: a registration request has none), so a
+        // client that cannot connect can be diagnosed from the logs.
+        IResult Refuse(RegistrationRequest? r, string error, string description)
+        {
+            logs.CreateLogger("HourOffice.Mcp").LogWarning(
+                "MCP client registration refused: {Error} ({Description}). Client {ClientName}, auth method {AuthMethod}, " +
+                "grant types {GrantTypes}, response types {ResponseTypes}, redirect URIs {RedirectUris}",
+                error, description, McpText.Clean(r?.ClientName, 100), McpText.Clean(r?.TokenEndpointAuthMethod, 40),
+                McpText.Clean(string.Join(',', r?.GrantTypes ?? []), 200), McpText.Clean(string.Join(',', r?.ResponseTypes ?? []), 100),
+                McpText.Clean(string.Join(' ', r?.RedirectUris ?? []), 600));
+            return RegistrationError(error, description);
+        }
     }
 
     internal static bool IsAllowedRedirect(string uri)
