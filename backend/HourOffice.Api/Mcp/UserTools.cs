@@ -81,7 +81,8 @@ public sealed class UserTools(McpCaller caller, BookingService bookings, OfficeS
     [McpServerTool(Name = "create_booking", Title = "Book an office", ReadOnly = false, Destructive = false, Idempotent = false,
         OpenWorld = false, UseStructuredContent = true)]
     [Description("Books an office for the signed-in person, under the same rules as the site (opening hours, days ahead, " +
-        "signed terms, complete profile). Returns the booking with its price. To undo, use cancel_booking.")]
+        "signed terms, complete profile). Returns the booking with its price. To undo, use cancel_booking. " +
+        "Repeat the office, day, hours and price to the person and get their OK before calling.")]
     [Authorize(Policy = "mcp:" + McpScopes.BookingsWrite)]
     public async Task<BookingOut> CreateBooking(RequestContext<CallToolRequestParams> rc,
         [Description("Office id from list_offices.")] string officeId,

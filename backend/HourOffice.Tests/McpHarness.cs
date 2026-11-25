@@ -116,7 +116,7 @@ public sealed class McpHarness(TestApp app)
 
     /// <summary>One JSON-RPC request to /mcp. Returns the HTTP response and the parsed JSON-RPC message (or null).</summary>
     public async Task<(HttpResponseMessage Http, JsonElement? Message)> RpcAsync(string? access, string method, object? @params = null,
-        string? origin = null)
+        string? origin = null, string? protocolVersion = "2025-06-18", string? sessionId = null)
     {
         var msg = new HttpRequestMessage(HttpMethod.Post, "/mcp")
         {
@@ -124,7 +124,15 @@ public sealed class McpHarness(TestApp app)
         };
         msg.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         msg.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
-        msg.Headers.Add("MCP-Protocol-Version", "2025-06-18");
+        if (protocolVersion is not null) msg.Headers.Add("MCP-Protocol-Version", protocolVersion);
+        if (sessionId is not null) msg.Headers.Add("Mcp-Session-Id", sessionId);
+        if (string.CompareOrdinal(protocolVersion, "2026-07-28") >= 0)
+        {
+            // The 2026-07-28 protocol repeats the method (and the tool name) in headers.
+            msg.Headers.Add("Mcp-Method", method);
+            if (method == "tools/call" && JsonSerializer.SerializeToElement(@params).TryGetProperty("name", out var name))
+                msg.Headers.Add("Mcp-Name", name.GetString());
+        }
         if (access is not null) msg.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
         if (origin is not null) msg.Headers.Add("Origin", origin);
         var res = await Raw.SendAsync(msg);

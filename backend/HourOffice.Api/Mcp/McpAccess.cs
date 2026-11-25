@@ -137,8 +137,8 @@ public sealed class McpCaller(IHttpContextAccessor http, MongoContext db, IOptio
 
     public MongoContext Db => db;
 
-    /// <summary>Asks the person to confirm a change, when the assistant supports it: MRTR (stateless input requests)
-    /// first, then classic elicitation. Without support the change goes ahead, and the tool result says what was done.
+    /// <summary>Asks the person to confirm a change, when the assistant declared elicitation: MRTR (stateless input
+    /// requests) first, then classic elicitation. Without support the change goes ahead, and the tool result says what was done.
     /// Returns false when the person declined.</summary>
     public async Task<bool> ConfirmAsync(RequestContext<CallToolRequestParams> rc, string message, CancellationToken ct)
     {
@@ -163,9 +163,12 @@ public sealed class McpCaller(IHttpContextAccessor http, MongoContext db, IOptio
                 Required = [key],
             },
         };
+        // Ask only an assistant that declared it can show a question (elicitation). ChatGPT (2026-11) speaks the
+        // 2026-07-28 protocol without declaring it, and an "input required" answer made it stop without booking.
+        // Such assistants ask the person themselves before a tool that is not read-only.
+        if (server.ClientCapabilities?.Elicitation is null) return true;
         if (server.IsMrtrSupported)
             throw new InputRequiredException(new Dictionary<string, InputRequest> { [key] = InputRequest.ForElicitation(request) }, null);
-        if (server.ClientCapabilities?.Elicitation is null) return true;
         try
         {
             var result = await server.ElicitAsync(request, ct);
